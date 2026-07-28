@@ -72,6 +72,11 @@ const ROOM_PRIVACY_MAP = {
   2: 'Some rooms',
   3: 'No rooms',
 };
+const SOP_PROTOCOL_MAP = {
+  1: 'They have displayed, up to date protocols',
+  2: 'They have written up to date protocols, not displayed',
+  3: 'They do not have up to date displayed or written protocols',
+};
 
 const FACILITY_MAP_FROM_2026 = {
   1: 'Kitutu Chache North Sub County Referral Hospital',
@@ -416,6 +421,8 @@ function transformNewbornUnitRecord_(rec) {
     'train/newborn': true, 'train/nnr': true, 'train/breastfeeding': true,
     'train/infections': true, 'train/comprehensive': true, 'train/neonate_hiv': true,
     'train/kangaroo': true, 'train/sic': true,
+    'sop/sepsis': true, 'sop/jaundice': true, 'sop/hypoglycemia': true,
+    'sop/neo_resus': true, 'sop/kmc': true, 'sop/handwash': true, 'sop/referral': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -504,6 +511,14 @@ function transformNewbornUnitRecord_(rec) {
   out.hiv_neonate_training = formatYearMonth_(rec['train/neonate_hiv']);
   out.kangaroo_training = formatYearMonth_(rec['train/kangaroo']);
   out.standard_infection_control = formatYearMonth_(rec['train/sic']);
+
+  out.sepsis_sop = lookupCoded_(rec['sop/sepsis'], SOP_PROTOCOL_MAP);
+  out.jaundice_sop = lookupCoded_(rec['sop/jaundice'], SOP_PROTOCOL_MAP);
+  out.hypoglycemia_sop = lookupCoded_(rec['sop/hypoglycemia'], SOP_PROTOCOL_MAP);
+  out.neonatal_resuscitation_sop = lookupCoded_(rec['sop/neo_resus'], SOP_PROTOCOL_MAP);
+  out.kmc_sop = lookupCoded_(rec['sop/kmc'], SOP_PROTOCOL_MAP);
+  out.handwash_sop = lookupCoded_(rec['sop/handwash'], SOP_PROTOCOL_MAP);
+  out.referral_sop = lookupCoded_(rec['sop/referral'], SOP_PROTOCOL_MAP);
 
   return out;
 }
@@ -596,6 +611,8 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'newborn_training', 'nnr_training', 'breastfeeding_training',
       'infections_training', 'comprehensive_training', 'hiv_neonate_training',
       'kangaroo_training', 'standard_infection_control',
+      'sepsis_sop', 'jaundice_sop', 'hypoglycemia_sop', 'neonatal_resuscitation_sop',
+      'kmc_sop', 'handwash_sop', 'referral_sop',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
