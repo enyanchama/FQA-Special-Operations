@@ -496,14 +496,14 @@ function transformNewbornUnitRecord_(rec) {
   out.visual_privacy = lookupCoded_(rec['privacy/visual_privacy'], ROOM_PRIVACY_MAP);
   out.auditory_privacy = lookupCoded_(rec['privacy/auditory_privacy'], ROOM_PRIVACY_MAP);
 
-  out.newborn_training = rec['train/newborn'] == null ? '' : rec['train/newborn'];
-  out.nnr_training = rec['train/nnr'] == null ? '' : rec['train/nnr'];
-  out.breastfeeding_training = rec['train/breastfeeding'] == null ? '' : rec['train/breastfeeding'];
-  out.infections_training = rec['train/infections'] == null ? '' : rec['train/infections'];
-  out.comprehensive_training = rec['train/comprehensive'] == null ? '' : rec['train/comprehensive'];
-  out.hiv_neonate_training = rec['train/neonate_hiv'] == null ? '' : rec['train/neonate_hiv'];
-  out.kangaroo_training = rec['train/kangaroo'] == null ? '' : rec['train/kangaroo'];
-  out.standard_infection_control = rec['train/sic'] == null ? '' : rec['train/sic'];
+  out.newborn_training = formatYearMonth_(rec['train/newborn']);
+  out.nnr_training = formatYearMonth_(rec['train/nnr']);
+  out.breastfeeding_training = formatYearMonth_(rec['train/breastfeeding']);
+  out.infections_training = formatYearMonth_(rec['train/infections']);
+  out.comprehensive_training = formatYearMonth_(rec['train/comprehensive']);
+  out.hiv_neonate_training = formatYearMonth_(rec['train/neonate_hiv']);
+  out.kangaroo_training = formatYearMonth_(rec['train/kangaroo']);
+  out.standard_infection_control = formatYearMonth_(rec['train/sic']);
 
   return out;
 }
@@ -537,6 +537,16 @@ function toIntegerOrBlank_(raw) {
   if (raw === undefined || raw === null || raw === '') return '';
   const n = Number(raw);
   return isNaN(n) ? String(raw) : n;
+}
+
+/** Kobo train dates: YYYY_MM → YYYY-MM; 0000_00 → Unknown */
+function formatYearMonth_(raw) {
+  if (raw === undefined || raw === null || raw === '') return '';
+  const s = String(raw).trim();
+  if (s === '0000_00' || s === '0000-00') return 'Unknown';
+  const m = s.match(/^(\d{4})[_-](\d{2})$/);
+  if (m) return m[1] + '-' + m[2];
+  return s;
 }
 
 function lookupCoded_(raw, map) {
