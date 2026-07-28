@@ -539,11 +539,11 @@ function toIntegerOrBlank_(raw) {
   return isNaN(n) ? String(raw) : n;
 }
 
-/** Kobo train dates: keep YYYY_MM and 0000_00; map unknown → 0000_00 */
+/** Kobo train dates: keep YYYY_MM and 0000_00; map unknown → 0000-00 */
 function formatYearMonth_(raw) {
   if (raw === undefined || raw === null || raw === '') return '';
   const s = String(raw).trim();
-  if (/^unknown$/i.test(s)) return '0000_00';
+  if (/^unknown$/i.test(s)) return '0000-00';
   return s;
 }
 
