@@ -413,6 +413,9 @@ function transformNewbornUnitRecord_(rec) {
     'records/inpatient_neonatal_reg': true, 'records/nb_admission': true,
     'records/perinatal_notification': true, 'records/perinatal_review': true,
     'privacy/visual_privacy': true, 'privacy/auditory_privacy': true,
+    'train/newborn': true, 'train/nnr': true, 'train/breastfeeding': true,
+    'train/infections': true, 'train/comprehensive': true, 'train/neonate_hiv': true,
+    'train/kangaroo': true, 'train/sic': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -492,6 +495,15 @@ function transformNewbornUnitRecord_(rec) {
   out.perinatal_review = lookupCoded_(rec['records/perinatal_review'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.visual_privacy = lookupCoded_(rec['privacy/visual_privacy'], ROOM_PRIVACY_MAP);
   out.auditory_privacy = lookupCoded_(rec['privacy/auditory_privacy'], ROOM_PRIVACY_MAP);
+
+  out.newborn_training = rec['train/newborn'] == null ? '' : rec['train/newborn'];
+  out.nnr_training = rec['train/nnr'] == null ? '' : rec['train/nnr'];
+  out.breastfeeding_training = rec['train/breastfeeding'] == null ? '' : rec['train/breastfeeding'];
+  out.infections_training = rec['train/infections'] == null ? '' : rec['train/infections'];
+  out.comprehensive_training = rec['train/comprehensive'] == null ? '' : rec['train/comprehensive'];
+  out.hiv_neonate_training = rec['train/neonate_hiv'] == null ? '' : rec['train/neonate_hiv'];
+  out.kangaroo_training = rec['train/kangaroo'] == null ? '' : rec['train/kangaroo'];
+  out.standard_infection_control = rec['train/sic'] == null ? '' : rec['train/sic'];
 
   return out;
 }
@@ -573,6 +585,9 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'neonatal_register', 'newborn_admission',
       'perinatal_notification', 'perinatal_review',
       'visual_privacy', 'auditory_privacy',
+      'newborn_training', 'nnr_training', 'breastfeeding_training',
+      'infections_training', 'comprehensive_training', 'hiv_neonate_training',
+      'kangaroo_training', 'standard_infection_control',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
