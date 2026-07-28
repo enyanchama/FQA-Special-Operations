@@ -77,6 +77,11 @@ const SOP_PROTOCOL_MAP = {
   2: 'They have written up to date protocols, not displayed',
   3: 'They do not have up to date displayed or written protocols',
 };
+const WATER_SOURCE_MAP = {
+  1: 'Present, functional',
+  2: 'Present, non-functional',
+  3: 'Not present',
+};
 
 const FACILITY_MAP_FROM_2026 = {
   1: 'Kitutu Chache North Sub County Referral Hospital',
@@ -423,6 +428,9 @@ function transformNewbornUnitRecord_(rec) {
     'train/kangaroo': true, 'train/sic': true,
     'sop/sepsis': true, 'sop/jaundice': true, 'sop/hypoglycemia': true,
     'sop/neo_resus': true, 'sop/kmc': true, 'sop/handwash': true, 'sop/referral': true,
+    'sanitation/wat_sour': true, 'sanitation/wav_avail': true, 'sanitation/drainage': true,
+    'sanitation/sinks': true, 'sanitation/hand': true, 'sanitation/waste': true,
+    'sanitation/bins': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -520,6 +528,14 @@ function transformNewbornUnitRecord_(rec) {
   out.handwash_sop = lookupCoded_(rec['sop/handwash'], SOP_PROTOCOL_MAP);
   out.referral_sop = lookupCoded_(rec['sop/referral'], SOP_PROTOCOL_MAP);
 
+  out.water_source = lookupCoded_(rec['sanitation/wat_sour'], WATER_SOURCE_MAP);
+  out.water_available_consistently = lookupCoded_(rec['sanitation/wav_avail'], YES_NO_MAP);
+  out.drainage_system = lookupCoded_(rec['sanitation/drainage'], YES_NO_MAP);
+  out.separate_sink = lookupCoded_(rec['sanitation/sinks'], YES_NO_MAP);
+  out.hand_hygiene = lookupCoded_(rec['sanitation/hand'], YES_NO_MAP);
+  out.waste_management = lookupCoded_(rec['sanitation/waste'], YES_NO_MAP);
+  out.waste_segregation = lookupCoded_(rec['sanitation/bins'], YES_NO_MAP);
+
   return out;
 }
 
@@ -613,6 +629,8 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'kangaroo_training', 'standard_infection_control',
       'sepsis_sop', 'jaundice_sop', 'hypoglycemia_sop', 'neonatal_resuscitation_sop',
       'kmc_sop', 'handwash_sop', 'referral_sop',
+      'water_source', 'water_available_consistently', 'drainage_system',
+      'separate_sink', 'hand_hygiene', 'waste_management', 'waste_segregation',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
