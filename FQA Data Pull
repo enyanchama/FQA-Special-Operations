@@ -67,6 +67,11 @@ const NEWBORN_ADMISSION_AVAIL_MAP = {
   2: 'Sometimes available',
   3: 'Never available',
 };
+const ROOM_PRIVACY_MAP = {
+  1: 'All rooms',
+  2: 'Some rooms',
+  3: 'No rooms',
+};
 
 const FACILITY_MAP_FROM_2026 = {
   1: 'Kitutu Chache North Sub County Referral Hospital',
@@ -406,6 +411,8 @@ function transformNewbornUnitRecord_(rec) {
     'resource/employed_cos': true, 'resource/contract_cos': true, 'resource/adeq_cos': true,
     'records/death_reg': true, 'records/consistent_use': true, 'records/integrated_rh_mch': true,
     'records/inpatient_neonatal_reg': true, 'records/nb_admission': true,
+    'records/perinatal_notification': true, 'records/perinatal_review': true,
+    'privacy/visual_privacy': true, 'privacy/auditory_privacy': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -481,6 +488,10 @@ function transformNewbornUnitRecord_(rec) {
   out.summary_register = lookupCoded_(rec['records/integrated_rh_mch'], YES_NO_MAP);
   out.neonatal_register = lookupCoded_(rec['records/inpatient_neonatal_reg'], YES_NO_MAP);
   out.newborn_admission = lookupCoded_(rec['records/nb_admission'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.perinatal_notification = lookupCoded_(rec['records/perinatal_notification'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.perinatal_review = lookupCoded_(rec['records/perinatal_review'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.visual_privacy = lookupCoded_(rec['privacy/visual_privacy'], ROOM_PRIVACY_MAP);
+  out.auditory_privacy = lookupCoded_(rec['privacy/auditory_privacy'], ROOM_PRIVACY_MAP);
 
   return out;
 }
@@ -560,6 +571,8 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'employed_co', 'contract_co', 'adequate_co',
       'death_register', 'deathreg_consistent_use', 'summary_register',
       'neonatal_register', 'newborn_admission',
+      'perinatal_notification', 'perinatal_review',
+      'visual_privacy', 'auditory_privacy',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
