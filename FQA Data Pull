@@ -1,40 +1,15 @@
 /**
  * FQA QuIPS Linkage — KoboToolbox → Google Sheets puller
- * -------------------------------------------------------
- * Pulls 8 QuIPS Kobo forms and writes each into its own sheet tab.
- *
- * INCREMENTAL REFRESH
- * - Uses `_uuid` as the unique key.
- * - Appends only submissions not already present.
- *
- * NEWBORN UNIT TRANSFORMATIONS
- * Applied only to the "Newborn Unit" sheet before writing:
- * - starttime      → date_started     (YYYY-MM-DD HH:MM)
- * - endtime        → date_ended       (YYYY-MM-DD HH:MM)
- * - today          → date_submitted   (YYYY-MM-DD HH:MM)
- * - facility_profile/county            → county (coded → name)
- * - facility_profile/facility          → facility (coded → name;
- *     uses post-2026-01-01 map when date_submitted >= 2026-01-01,
- *     otherwise uses pre-2026 map)
- * - facility_profile/gazetted_facility → facility_level (2/3/4 → Level N)
- * - facility_profile/contact           → contact_person (coded → label)
- * - facility_profile/nam_contact       → name_contact
- *
- * SETUP
- * 1. Paste into Apps Script Code.gs
- * 2. Set Script Property KOBO_API_TOKEN (File → Project settings → Script properties)
- * 3. Run fullRefreshAllForms once (recommended after transform changes)
- * 4. Then use pullAllForms / createDailyTrigger for incremental updates
- *
  * Do not commit the API token to git.
+ * Run fullRefreshAllForms after paste.
+ *
+ * Set Script Property KOBO_API_TOKEN under Project Settings → Script properties.
  */
-
-// ---------- CONFIG ----------
 
 const KOBO_BASE_URL = 'https://kobo.humanitarianresponse.info';
 const UUID_FIELD = '_uuid';
 const PAGE_SIZE = 1000;
-const FACILITY_MAP_CUTOFF = '2026-01-01'; // inclusive: on/after → post-2026 facility map
+const FACILITY_MAP_CUTOFF = '2026-01-01';
 
 const FORM_CONFIG = [
   { uid: 'aQb68NgWt27XdYZcLjBeEg', sheetName: 'Newborn Unit' },
@@ -47,24 +22,10 @@ const FORM_CONFIG = [
   { uid: 'ajaViXRxTMrixfE9udoord', sheetName: 'Facility General' },
 ];
 
-// ---------- LOOKUP TABLES (Newborn Unit) ----------
-
 const COUNTY_MAP = {
-  1: 'Mombasa',
-  2: 'Makueni',
-  3: 'Kisii',
-  4: 'Nakuru',
-  5: "Murang'a",
-  6: 'Kakamega',
+  1: 'Mombasa', 2: 'Makueni', 3: 'Kisii', 4: 'Nakuru', 5: "Murang'a", 6: 'Kakamega',
 };
-
-const FACILITY_LEVEL_MAP = {
-  2: 'Level 2',
-  3: 'Level 3',
-  4: 'Level 4',
-  5: 'Level 5'
-};
-
+const FACILITY_LEVEL_MAP = { 2: 'Level 2', 3: 'Level 3', 4: 'Level 4' };
 const CONTACT_PERSON_MAP = {
   1: 'Clinical officer in charge',
   2: 'Nursing officer in charge',
@@ -74,8 +35,39 @@ const CONTACT_PERSON_MAP = {
   6: 'Medical superintendent',
   7: 'Other, please specify',
 };
+const YES_NO_MAP = { 1: 'Yes', 0: 'No' };
+const REFERRAL_WEIGHT_MAP = {
+  1: 'Any infant less than 1.7kg',
+  2: 'Any infant less than 2kg',
+  3: 'Any infant less than 2.5kg',
+};
+const LAB_AVAILABILITY_MAP = {
+  1: 'Yes',
+  2: 'No but can be performed in facility laboratory',
+  3: 'No cannot be performed at this facility',
+};
+const UNIT_AVAILABILITY_MAP = {
+  1: 'Yes - immediately available in this unit',
+  2: 'No but can be performed in facility laboratory',
+  3: 'No cannot be performed at this facility',
+};
+const RADIOLOGY_AVAILABILITY_MAP = {
+  1: 'Yes - immediately available in this unit',
+  2: 'No but can be performed in facility radiology unit',
+  3: 'No cannot be performed at this facility',
+};
+const IMAGING_TIME_MAP = {
+  1: 'Less than hour',
+  2: 'One to <2 hours',
+  3: '2 to 4 hours',
+  4: '> 4 hours',
+};
+const NEWBORN_ADMISSION_AVAIL_MAP = {
+  1: 'Always available',
+  2: 'Sometimes available',
+  3: 'Never available',
+};
 
-/** Facility codes when date_submitted >= 2026-01-01 */
 const FACILITY_MAP_FROM_2026 = {
   1: 'Kitutu Chache North Sub County Referral Hospital',
   2: 'Entanda Health Centre',
@@ -228,7 +220,6 @@ const FACILITY_MAP_FROM_2026 = {
   149: "St Mary's Hospital (Mumias)",
 };
 
-/** Facility codes when date_submitted < 2026-01-01 */
 const FACILITY_MAP_BEFORE_2026 = {
   1: 'Matongo Medical Clinic',
   2: 'Eberege Health Centre',
@@ -319,24 +310,17 @@ const FACILITY_MAP_BEFORE_2026 = {
   87: 'Makueni County Referral Hospital',
 };
 
-// ---------- MAIN ENTRY POINTS ----------
-
 function pullAllForms() {
   const token = getApiToken();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-
   FORM_CONFIG.forEach(function (form) {
     try {
       Logger.log('Pulling form: ' + form.uid + ' → "' + form.sheetName + '"');
       let records = fetchAllSubmissions(form.uid, token);
-      if (form.sheetName === 'Newborn Unit') {
-        records = records.map(transformNewbornUnitRecord_);
-      }
+      if (form.sheetName === 'Newborn Unit') records = records.map(transformNewbornUnitRecord_);
       const result = appendNewRecordsToSheet(ss, form.sheetName, records);
-      Logger.log(
-        'Sheet "' + form.sheetName + '": appended ' + result.appended +
-        ' new row(s); skipped ' + result.skipped + ' existing uuid(s).'
-      );
+      Logger.log('Sheet "' + form.sheetName + '": appended ' + result.appended +
+        ' new row(s); skipped ' + result.skipped + ' existing uuid(s).');
     } catch (err) {
       Logger.log('ERROR pulling ' + form.uid + ': ' + err.message);
     }
@@ -346,16 +330,13 @@ function pullAllForms() {
 function fullRefreshAllForms() {
   const token = getApiToken();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-
   FORM_CONFIG.forEach(function (form) {
     try {
       Logger.log('Full refresh for form: ' + form.uid + ' → "' + form.sheetName + '"');
       const sheet = ss.getSheetByName(form.sheetName);
       if (sheet) sheet.clearContents();
       let records = fetchAllSubmissions(form.uid, token);
-      if (form.sheetName === 'Newborn Unit') {
-        records = records.map(transformNewbornUnitRecord_);
-      }
+      if (form.sheetName === 'Newborn Unit') records = records.map(transformNewbornUnitRecord_);
       const result = appendNewRecordsToSheet(ss, form.sheetName, records);
       Logger.log('Sheet "' + form.sheetName + '": wrote ' + result.appended + ' row(s).');
     } catch (err) {
@@ -363,8 +344,6 @@ function fullRefreshAllForms() {
     }
   });
 }
-
-// ---------- KOBO API ----------
 
 function getApiToken() {
   const token = PropertiesService.getScriptProperties().getProperty('KOBO_API_TOKEN');
@@ -381,47 +360,52 @@ function fetchAllSubmissions(assetUid, token) {
   let allResults = [];
   let start = 0;
   let total = null;
-
   do {
     const url = KOBO_BASE_URL + '/api/v2/assets/' + assetUid + '/data.json'
       + '?limit=' + PAGE_SIZE + '&start=' + start;
-
     const response = UrlFetchApp.fetch(url, {
       method: 'get',
       headers: { Authorization: 'Token ' + token },
       muteHttpExceptions: true,
     });
-
     const code = response.getResponseCode();
     if (code !== 200) {
       throw new Error('Kobo API returned HTTP ' + code + ' for ' + assetUid + ': ' + response.getContentText());
     }
-
     const json = JSON.parse(response.getContentText());
     total = json.count;
     allResults = allResults.concat(json.results);
     start += PAGE_SIZE;
     Utilities.sleep(200);
   } while (start < total);
-
   return allResults;
 }
-
-// ---------- NEWBORN UNIT TRANSFORMS ----------
 
 function transformNewbornUnitRecord_(rec) {
   const out = {};
   const rawKeysToDrop = {
-    starttime: true,
-    endtime: true,
-    today: true,
-    start: true,
-    end: true,
-    'facility_profile/county': true,
-    'facility_profile/facility': true,
-    'facility_profile/gazetted_facility': true,
-    'facility_profile/contact': true,
-    'facility_profile/nam_contact': true,
+    starttime: true, endtime: true, today: true, start: true, end: true,
+    'facility_profile/county': true, 'facility_profile/facility': true,
+    'facility_profile/gazetted_facility': true, 'facility_profile/contact': true,
+    'facility_profile/nam_contact': true, 'facility_profile/phone_contact': true,
+    'facility_profile/unit': true,
+    'service/needs': true, 'service/premature_care': true, 'service/referral_weight': true,
+    'service/nutritional_services': true, 'service/nursing_care': true,
+    'service/congenital_care': true, 'service/asphyxia_care': true,
+    'service/blood_count': true, 'service/malaria_test': true, 'service/urine': true,
+    'service/blood_cultures': true, 'service/lumbar': true, 'service/hiv_antibody': true,
+    'service/coombs': true, 'service/bone_chem': true, 'service/blood_group': true,
+    'service/urinalysis': true, 'service/crp_test': true, 'service/thyroid_test': true,
+    'service/electrolyte': true, 'service/liver_func': true, 'service/creatinine': true,
+    'service/glucose': true, 'service/bilirubin': true, 'service/cranial_ultras': true,
+    'service/x_ray': true, 'service/avg_time': true,
+    'resource/employed_neonatologists': true, 'resource/contract_neonatologists': true,
+    'resource/employed_paed': true, 'resource/contract_paed': true, 'resource/available_24hrs': true,
+    'resource/employed_mos': true, 'resource/contract_mos': true, 'resource/adeq_mos': true,
+    'resource/employed_rn': true, 'resource/contract_rn': true, 'resource/adeq_rn': true,
+    'resource/employed_cos': true, 'resource/contract_cos': true, 'resource/adeq_cos': true,
+    'records/death_reg': true, 'records/consistent_use': true, 'records/integrated_rh_mch': true,
+    'records/inpatient_neonatal_reg': true, 'records/nb_admission': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -438,14 +422,66 @@ function transformNewbornUnitRecord_(rec) {
   out.county = lookupCoded_(rec['facility_profile/county'], COUNTY_MAP);
 
   const facilityMap = isOnOrAfterCutoff_(dateSubmitted, FACILITY_MAP_CUTOFF)
-    ? FACILITY_MAP_FROM_2026
-    : FACILITY_MAP_BEFORE_2026;
+    ? FACILITY_MAP_FROM_2026 : FACILITY_MAP_BEFORE_2026;
   out.facility = lookupCoded_(rec['facility_profile/facility'], facilityMap);
   out.facility_level = lookupCoded_(rec['facility_profile/gazetted_facility'], FACILITY_LEVEL_MAP);
   out.contact_person = lookupCoded_(rec['facility_profile/contact'], CONTACT_PERSON_MAP);
+  out.name_contact = rec['facility_profile/nam_contact'] == null ? '' : rec['facility_profile/nam_contact'];
+  out.phone_number = rec['facility_profile/phone_contact'] == null ? '' : rec['facility_profile/phone_contact'];
 
-  const nameContact = rec['facility_profile/nam_contact'];
-  out.name_contact = nameContact === undefined || nameContact === null ? '' : nameContact;
+  out.functional_nbu = lookupCoded_(rec['facility_profile/unit'], YES_NO_MAP);
+  out.newborn_admissions = toIntegerOrBlank_(rec['service/needs']);
+  out.premature_care = lookupCoded_(rec['service/premature_care'], YES_NO_MAP);
+  out.referral_weight = lookupCoded_(rec['service/referral_weight'], REFERRAL_WEIGHT_MAP);
+  out.nutritional_services = lookupCoded_(rec['service/nutritional_services'], YES_NO_MAP);
+  out.nursing_care = lookupCoded_(rec['service/nursing_care'], YES_NO_MAP);
+  out.congenital_care = lookupCoded_(rec['service/congenital_care'], YES_NO_MAP);
+  out.asphyxia_care = lookupCoded_(rec['service/asphyxia_care'], YES_NO_MAP);
+
+  out.blood_count = lookupCoded_(rec['service/blood_count'], LAB_AVAILABILITY_MAP);
+  out.malaria_test = lookupCoded_(rec['service/malaria_test'], LAB_AVAILABILITY_MAP);
+  out.urine = lookupCoded_(rec['service/urine'], LAB_AVAILABILITY_MAP);
+  out.blood_cultures = lookupCoded_(rec['service/blood_cultures'], LAB_AVAILABILITY_MAP);
+  out.lumbar_puncture = lookupCoded_(rec['service/lumbar'], LAB_AVAILABILITY_MAP);
+  out.hiv_test = lookupCoded_(rec['service/hiv_antibody'], LAB_AVAILABILITY_MAP);
+  out.coombs_testing = lookupCoded_(rec['service/coombs'], LAB_AVAILABILITY_MAP);
+  out.bone_chemistry = lookupCoded_(rec['service/bone_chem'], LAB_AVAILABILITY_MAP);
+  out.blood_group = lookupCoded_(rec['service/blood_group'], LAB_AVAILABILITY_MAP);
+  out.urinalysis = lookupCoded_(rec['service/urinalysis'], LAB_AVAILABILITY_MAP);
+  out.crp_test = lookupCoded_(rec['service/crp_test'], LAB_AVAILABILITY_MAP);
+  out.thyroid_test = lookupCoded_(rec['service/thyroid_test'], LAB_AVAILABILITY_MAP);
+  out.electrolyte = lookupCoded_(rec['service/electrolyte'], LAB_AVAILABILITY_MAP);
+  out.liver_function = lookupCoded_(rec['service/liver_func'], LAB_AVAILABILITY_MAP);
+  out.creatinine = lookupCoded_(rec['service/creatinine'], LAB_AVAILABILITY_MAP);
+
+  out.glucose_tests = lookupCoded_(rec['service/glucose'], UNIT_AVAILABILITY_MAP);
+  out.bilirubin_testing = lookupCoded_(rec['service/bilirubin'], UNIT_AVAILABILITY_MAP);
+  out.cranial_ultrasound = lookupCoded_(rec['service/cranial_ultras'], RADIOLOGY_AVAILABILITY_MAP);
+  out.x_ray = lookupCoded_(rec['service/x_ray'], RADIOLOGY_AVAILABILITY_MAP);
+  out.imaging_time = lookupCoded_(rec['service/avg_time'], IMAGING_TIME_MAP);
+
+  out.employed_neonatologists = toIntegerOrBlank_(rec['resource/employed_neonatologists']);
+  out.contract_neonatologists = toIntegerOrBlank_(rec['resource/contract_neonatologists']);
+  out.employed_paediatrician = toIntegerOrBlank_(rec['resource/employed_paed']);
+  out.contracted_paediatrician = toIntegerOrBlank_(rec['resource/contract_paed']);
+  out.neo_ped_24hrs = lookupCoded_(rec['resource/available_24hrs'], YES_NO_MAP);
+
+  out.employed_mo = toIntegerOrBlank_(rec['resource/employed_mos']);
+  out.contract_mo = toIntegerOrBlank_(rec['resource/contract_mos']);
+  out.adequate_mo = lookupCoded_(rec['resource/adeq_mos'], YES_NO_MAP);
+  out.employed_nurses = toIntegerOrBlank_(rec['resource/employed_rn']);
+  out.contract_nurses = toIntegerOrBlank_(rec['resource/contract_rn']);
+  out.adequate_reg_nurses = lookupCoded_(rec['resource/adeq_rn'], YES_NO_MAP);
+  out.employed_co = toIntegerOrBlank_(rec['resource/employed_cos']);
+  out.contract_co = toIntegerOrBlank_(rec['resource/contract_cos']);
+  out.adequate_co = lookupCoded_(rec['resource/adeq_cos'], YES_NO_MAP);
+
+  out.death_register = lookupCoded_(rec['records/death_reg'], YES_NO_MAP);
+  out.deathreg_consistent_use = lookupCoded_(rec['records/consistent_use'], YES_NO_MAP);
+  out.summary_register = lookupCoded_(rec['records/integrated_rh_mch'], YES_NO_MAP);
+  out.neonatal_register = lookupCoded_(rec['records/inpatient_neonatal_reg'], YES_NO_MAP);
+  out.newborn_admission = lookupCoded_(rec['records/nb_admission'], NEWBORN_ADMISSION_AVAIL_MAP);
+
   return out;
 }
 
@@ -474,6 +510,12 @@ function isOnOrAfterCutoff_(dateSubmittedFormatted, cutoffYmd) {
   return String(dateSubmittedFormatted).substring(0, 10) >= cutoffYmd;
 }
 
+function toIntegerOrBlank_(raw) {
+  if (raw === undefined || raw === null || raw === '') return '';
+  const n = Number(raw);
+  return isNaN(n) ? String(raw) : n;
+}
+
 function lookupCoded_(raw, map) {
   if (raw === undefined || raw === null || raw === '') return '';
   const keyNum = Number(raw);
@@ -483,16 +525,12 @@ function lookupCoded_(raw, map) {
   return keyStr;
 }
 
-// ---------- SHEET WRITING (UUID INCREMENTAL) ----------
-
 function appendNewRecordsToSheet(ss, sheetName, records) {
   let sheet = ss.getSheetByName(sheetName);
   if (!sheet) sheet = ss.insertSheet(sheetName);
 
   if (!records || records.length === 0) {
-    if (sheet.getLastRow() === 0) {
-      sheet.getRange(1, 1).setValue('No submissions found.');
-    }
+    if (sheet.getLastRow() === 0) sheet.getRange(1, 1).setValue('No submissions found.');
     return { appended: 0, skipped: 0 };
   }
 
@@ -500,23 +538,28 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
   const lastCol = sheet.getLastColumn();
   const firstCell = lastRow > 0 ? String(sheet.getRange(1, 1).getValue()) : '';
   const isEmptyOrPlaceholder =
-    lastRow === 0 ||
-    lastCol === 0 ||
+    lastRow === 0 || lastCol === 0 ||
     (lastRow === 1 && firstCell === 'No submissions found.');
 
   if (isEmptyOrPlaceholder) {
     sheet.clearContents();
     const headers = ensureUuidFirst_(buildHeaderUnion_(records));
     const preferred = [
-      UUID_FIELD,
-      'date_started',
-      'date_ended',
-      'date_submitted',
-      'county',
-      'facility',
-      'facility_level',
-      'contact_person',
-      'name_contact',
+      UUID_FIELD, 'date_started', 'date_ended', 'date_submitted',
+      'county', 'facility', 'facility_level', 'contact_person', 'name_contact',
+      'phone_number', 'functional_nbu', 'newborn_admissions', 'premature_care',
+      'referral_weight', 'nutritional_services', 'nursing_care', 'congenital_care',
+      'asphyxia_care', 'blood_count', 'malaria_test', 'urine', 'blood_cultures',
+      'lumbar_puncture', 'hiv_test', 'coombs_testing', 'bone_chemistry', 'blood_group',
+      'urinalysis', 'crp_test', 'thyroid_test', 'electrolyte', 'liver_function',
+      'creatinine', 'glucose_tests', 'bilirubin_testing', 'cranial_ultrasound',
+      'x_ray', 'imaging_time', 'employed_neonatologists', 'contract_neonatologists',
+      'employed_paediatrician', 'contracted_paediatrician', 'neo_ped_24hrs',
+      'employed_mo', 'contract_mo', 'adequate_mo',
+      'employed_nurses', 'contract_nurses', 'adequate_reg_nurses',
+      'employed_co', 'contract_co', 'adequate_co',
+      'death_register', 'deathreg_consistent_use', 'summary_register',
+      'neonatal_register', 'newborn_admission',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
@@ -525,46 +568,31 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
 
   let headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(String);
   const uuidColIndex = headers.indexOf(UUID_FIELD);
-
   if (uuidColIndex === -1) {
-    throw new Error(
-      'Sheet "' + sheetName + '" has no "' + UUID_FIELD +
-      '" column. Run fullRefreshAllForms() once to rebuild tabs.'
-    );
+    throw new Error('Sheet "' + sheetName + '" has no "' + UUID_FIELD + '" column. Run fullRefreshAllForms().');
   }
 
   const existingUuidSet = {};
   if (lastRow >= 2) {
     const numDataRows = lastRow - 1;
-    const uuidValues = sheet.getRange(2, uuidColIndex + 1, numDataRows, 1).getValues();
-    uuidValues.forEach(function (row) {
-      if (row[0] !== '' && row[0] !== null && row[0] !== undefined) {
-        existingUuidSet[String(row[0])] = true;
-      }
+    sheet.getRange(2, uuidColIndex + 1, numDataRows, 1).getValues().forEach(function (row) {
+      if (row[0] !== '' && row[0] != null) existingUuidSet[String(row[0])] = true;
     });
   }
 
   const newRecords = records.filter(function (rec) {
     const uuid = rec[UUID_FIELD];
-    if (uuid === undefined || uuid === null || uuid === '') return false;
-    return !existingUuidSet[String(uuid)];
+    return uuid != null && uuid !== '' && !existingUuidSet[String(uuid)];
   });
-
   const skipped = records.length - newRecords.length;
   if (newRecords.length === 0) return { appended: 0, skipped: skipped };
 
   const headerSet = {};
   headers.forEach(function (h) { headerSet[h] = true; });
   buildHeaderUnion_(newRecords).forEach(function (key) {
-    if (!headerSet[key]) {
-      headers.push(key);
-      headerSet[key] = true;
-    }
+    if (!headerSet[key]) { headers.push(key); headerSet[key] = true; }
   });
-
-  if (headers.length > lastCol) {
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-  }
+  if (headers.length > lastCol) sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
 
   writeRows_(sheet, headers, newRecords, lastRow + 1, false);
   sheet.setFrozenRows(1);
@@ -599,14 +627,11 @@ function flattenCell_(val) {
 }
 
 function writeRows_(sheet, headers, records, startRow, writeHeader) {
-  if (writeHeader) {
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-  }
+  if (writeHeader) sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   const rows = records.map(function (rec) {
     return headers.map(function (h) { return flattenCell_(rec[h]); });
   });
   if (rows.length > 0) {
-    // getRange(row, column, numRows, numColumns) — counts, not end indices
     sheet.getRange(startRow, 1, rows.length, headers.length).setValues(rows);
   }
 }
