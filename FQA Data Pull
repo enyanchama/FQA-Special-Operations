@@ -1,0 +1,620 @@
+/**
+ * FQA QuIPS Linkage — KoboToolbox → Google Sheets puller
+ * -------------------------------------------------------
+ * Pulls 8 QuIPS Kobo forms and writes each into its own sheet tab.
+ *
+ * INCREMENTAL REFRESH
+ * - Uses `_uuid` as the unique key.
+ * - Appends only submissions not already present.
+ *
+ * NEWBORN UNIT TRANSFORMATIONS
+ * Applied only to the "Newborn Unit" sheet before writing:
+ * - starttime      → date_started     (YYYY-MM-DD HH:MM)
+ * - endtime        → date_ended       (YYYY-MM-DD HH:MM)
+ * - today          → date_submitted   (YYYY-MM-DD HH:MM)
+ * - facility_profile/county            → county (coded → name)
+ * - facility_profile/facility          → facility (coded → name;
+ *     uses post-2026-01-01 map when date_submitted >= 2026-01-01,
+ *     otherwise uses pre-2026 map)
+ * - facility_profile/gazetted_facility → facility_level (2/3/4 → Level N)
+ * - facility_profile/contact           → contact_person (coded → label)
+ * - facility_profile/nam_contact       → name_contact
+ *
+ * SETUP
+ * 1. Paste into Apps Script Code.gs
+ * 2. Set Script Property KOBO_API_TOKEN (File → Project settings → Script properties)
+ * 3. Run fullRefreshAllForms once (recommended after transform changes)
+ * 4. Then use pullAllForms / createDailyTrigger for incremental updates
+ *
+ * Do not commit the API token to git.
+ */
+
+// ---------- CONFIG ----------
+
+const KOBO_BASE_URL = 'https://kobo.humanitarianresponse.info';
+const UUID_FIELD = '_uuid';
+const PAGE_SIZE = 1000;
+const FACILITY_MAP_CUTOFF = '2026-01-01'; // inclusive: on/after → post-2026 facility map
+
+const FORM_CONFIG = [
+  { uid: 'aQb68NgWt27XdYZcLjBeEg', sheetName: 'Newborn Unit' },
+  { uid: 'ayJmtRyKnrwh2qVL5BRmBv', sheetName: 'Inpatient Maternity' },
+  { uid: 'a6kFhM7A67mPyb26udMR3o', sheetName: 'Outpatient' },
+  { uid: 'aJxN6izu5HKcEQMkbMyAb6', sheetName: 'Lab' },
+  { uid: 'aPk9ZZ4YMqX4uYaMFXmDQF', sheetName: 'Operating Theatre' },
+  { uid: 'aaaFehxBcdYrZuQQBAGMkF', sheetName: 'Pharmacy' },
+  { uid: 'afkfnzSqqg3DiGxgvP8nR2', sheetName: 'Central Store' },
+  { uid: 'ajaViXRxTMrixfE9udoord', sheetName: 'Facility General' },
+];
+
+// ---------- LOOKUP TABLES (Newborn Unit) ----------
+
+const COUNTY_MAP = {
+  1: 'Mombasa',
+  2: 'Makueni',
+  3: 'Kisii',
+  4: 'Nakuru',
+  5: "Murang'a",
+  6: 'Kakamega',
+};
+
+const FACILITY_LEVEL_MAP = {
+  2: 'Level 2',
+  3: 'Level 3',
+  4: 'Level 4',
+  5: 'Level 5'
+};
+
+const CONTACT_PERSON_MAP = {
+  1: 'Clinical officer in charge',
+  2: 'Nursing officer in charge',
+  3: 'Facility in charge',
+  4: 'MNH in charge',
+  5: 'Medical officer in charge',
+  6: 'Medical superintendent',
+  7: 'Other, please specify',
+};
+
+/** Facility codes when date_submitted >= 2026-01-01 */
+const FACILITY_MAP_FROM_2026 = {
+  1: 'Kitutu Chache North Sub County Referral Hospital',
+  2: 'Entanda Health Centre',
+  3: 'Kenyenya Sub County Hospital',
+  4: 'Gucha Sub County Referral Hospital',
+  5: 'Nyamache Sub County Referral Hospital',
+  6: 'Nyacheki Sub County Hospital',
+  7: 'Gesusu Sub-County Referral Hospital',
+  8: 'Masimba Sub-County Hospital',
+  9: 'Keumbu Sub County Hospital',
+  10: 'Christamarianne Mission Hospital',
+  11: 'Nyanchwa Adventist Hospital',
+  12: 'Nduru Sub County Referral Hospital',
+  13: 'Etago Sub-county Hospital',
+  14: 'Tabaka Mission Hospital',
+  15: 'Iyabe Sub County Hospital',
+  16: 'Kisii Teaching And Referral Hospital (Level 6)',
+  17: 'Iranda Sub-County Hospital',
+  18: 'Mosocho Market Dispensary',
+  19: 'Kioge Dispensary',
+  20: 'Matongo Health Centre',
+  21: 'Nyaore Dispensary',
+  22: 'Raganga Health Centre',
+  23: 'Keera Dispensary',
+  24: 'Kiamwasi Dispensary',
+  25: 'Getembe Dispensary',
+  26: 'Mwamogesa Dispensary',
+  27: 'Oresi Sub County Hospital',
+  28: 'Ram Hospital',
+  29: 'Mediforte Hospital Limited',
+  30: 'Oasis Specialist Hospital',
+  31: 'Nyangena Hospital',
+  32: 'Bosongo Medical Centre',
+  33: 'Mbooni Sub County Hospital',
+  34: 'Tawa Sub-County Hospial',
+  35: 'Tulimani Health Centre',
+  36: 'Katilini Dispensary',
+  37: 'Ngai Health Center',
+  38: 'Kako Health Centre',
+  39: 'Kalawa Sub County Hospital',
+  40: 'Kali Health Centre',
+  41: 'Kaliani Health Centre',
+  42: 'Kathulumbi Health Centre',
+  43: 'Kisau Sub County Hospital',
+  44: 'Kisoi Munyao Memorial Health Centre',
+  45: 'Utuneni Dispensary',
+  46: 'Uviluni Dispensary',
+  47: 'Emali Sub County Hospital',
+  48: 'Mukuyuni Sub County Hospital',
+  49: 'Waia Dispensary',
+  50: 'Kilungu Sub County Hospital',
+  51: 'Kibwezi Sub County Hospital',
+  52: 'Kambu Sub County Hospital',
+  53: 'Mtito Andei Sub County Hospital',
+  54: 'Makindu Sub County Hospital',
+  55: 'Nthongoni Sub County Hospital',
+  56: 'Matiliku Sub County Hospital',
+  57: 'Sultan Hamud Sub County Hospital',
+  58: 'Makueni County Referral Hospital',
+  59: 'Jomvu Model Health Centre',
+  60: 'Miritini CDF Health Centre',
+  61: 'Bokole CDF Dispensary',
+  62: 'Mlaleo CDF Health Centre',
+  63: 'Mikindani Hospital',
+  64: 'Port Reitz Sub County Hospital',
+  65: 'Sayyida Fatimah Hospital',
+  66: 'Likoni Subcounty Hospital',
+  67: 'Mrima Maternity Hospital',
+  68: 'St Thomas Maternity Hospital - Ferry Branch',
+  69: 'Mbungoni Catholic Dispensary (CBHC)',
+  70: 'Shika Adabu (MCM) Dispensary',
+  71: 'Mbuta Model Health Centre',
+  72: 'Mtongwe Health Centre',
+  73: 'Mtongwe Dispensary',
+  74: 'Coast General Teaching and Referral Hospital Vikwatani Outreach Centre',
+  75: 'Shimo La Tewa Annex GK Prison Dispensary',
+  76: 'Tudor District Hospital (Mombasa)',
+  77: 'Coast General Teaching and Referal Hospital-Utange Fied Hospital',
+  78: 'Coast General Teaching and Referral Hospital',
+  79: 'Shelly Beach Hospital',
+  80: 'Bahati Sub County Hospital',
+  81: 'Njoro Sub County Hospital',
+  82: 'Mau Narok Health Centre',
+  83: 'Molo Sub County hospital',
+  84: 'Elburgon Sub County Hospital',
+  85: 'Olenguruone Sub County Hospital',
+  86: 'Keringet Sub county Hospital',
+  87: 'Mirugi Kariuki Sub County Hospital',
+  88: 'Lanet Health Centre',
+  89: 'Bondeni Sub County Hospital',
+  90: 'Our Lady Of Mercy Mission Hospital',
+  91: 'Soin Sub county hospital',
+  92: 'Rongai Health Centre',
+  93: "Mang'u Health Centre",
+  94: 'Subukia Sub County Hospital',
+  95: 'Naivasha Sub County Hospital',
+  96: 'Karagita Health Centre',
+  97: 'Olkaria Community Health Centre (Naivasha)',
+  98: 'Oserian Health Centre',
+  99: 'Mai Mahiu Health Centre',
+  100: 'Maiela Health Centre',
+  101: 'Naivasha (AIC) Medical Centre',
+  102: 'Mulemi Hospital.',
+  103: 'Annex Hospital',
+  104: 'Nakuru County Teaching and Referral Hospital',
+  105: 'Ronda Health Centre',
+  106: 'Kuresoi Health Centre',
+  107: 'Gilgil Sub county Hospital',
+  108: 'Kiptangwanyi Health Center',
+  109: "Murang'a County Referal Hospital",
+  110: 'Kirwara Sub County Hospital',
+  111: 'Muriranjas Sub County Hospital',
+  112: 'Kandara Sub County Hospital',
+  113: 'Gaichanjiru Mission Hospital',
+  114: 'Kiriaini Mission Hospital',
+  115: 'Kigumo Sub County Hospital',
+  116: 'Kangema Sub County Hospital',
+  117: 'Maragua Sub County Hospital',
+  118: 'Makuyu Health Centre',
+  119: 'Kenol Hospital',
+  120: 'Kamahuha Health Centre',
+  121: 'Maragua Ridge Health Centre',
+  122: 'Gikono Dispensary',
+  123: 'Kambiti Dispensary',
+  124: 'Ithanga Health Centre',
+  125: 'Kakamega County General Refferal Hospital',
+  126: 'Navakholo sub county Hospital',
+  127: 'Bushiri Health Centre',
+  128: 'Khwisero SC county hospital',
+  129: 'Butere sub county Hopsital',
+  130: 'Lumakanda Sub county Hospital',
+  131: 'Mautuma Sub County Hospital',
+  132: 'Matungu sub county Hospital',
+  133: 'Malava Sub County Hospital',
+  134: 'Shivanga Health Center',
+  135: 'Shamberere Health Center',
+  136: 'Chevoso Dispensary',
+  137: 'Chombeli Health Center',
+  138: 'Sheywe Dispensary',
+  139: 'Kuvasali Health Center',
+  140: "Kimang'eti Dispensary",
+  141: 'St Marthas Chimoi Health Centre',
+  142: 'Kakamega Orthopaedic Hospital',
+  143: 'Likuyani Sub County Hospital',
+  144: 'Matunda Sub County Hospital',
+  145: 'Iguhu Sub County Hospital',
+  146: 'Shibwe Sub County Hospital',
+  147: 'Mukumu Hospital',
+  148: 'Mumias Hospital',
+  149: "St Mary's Hospital (Mumias)",
+};
+
+/** Facility codes when date_submitted < 2026-01-01 */
+const FACILITY_MAP_BEFORE_2026 = {
+  1: 'Matongo Medical Clinic',
+  2: 'Eberege Health Centre',
+  3: 'Isecha Health Centre',
+  4: 'Kegogi Health Centre',
+  5: 'Kionyo Health Centre',
+  6: 'Magena Health Centre',
+  7: 'Magenche Health Centre',
+  8: 'Moticho Health Centre',
+  9: 'Riana Health Centre',
+  10: 'Riotanchi Health Centre',
+  11: 'Entanda Health Centre',
+  12: 'Oresi Health Centre',
+  13: 'Raganga Health Centre',
+  14: 'Etago Sub-County Hospital',
+  15: 'Iranda Sub-County Referral Hospital',
+  16: 'Iyabe Sub County Hospital',
+  17: 'Gesusu Sub-County Referral Hospital',
+  18: 'Gucha Sub County Referral Hospital',
+  19: 'Kenyenya Sub County Referral Hospital',
+  20: 'Keumbu Sub County Hospital',
+  21: 'Nyamache Sub County Referral Hospital',
+  22: 'Kitutu Chache North Sub County Referral Hospital',
+  23: 'Masimba Sub-County Hospital',
+  24: 'Nduru Sub County Referral Hospital',
+  25: 'Misesi Sub County Hospital',
+  26: 'Nyamagundo sub county hospital',
+  27: 'Nyamasibi Sub-County Hospital',
+  28: 'Suguta Sub County Hospital',
+  29: 'Kisii Teaching And Referral Hospital (Level 6)',
+  30: 'Bamburi Dispensary',
+  31: 'Cdc Ganjoni Dispensary',
+  32: 'Junda Dispensary',
+  33: 'Magongo (MCM) Dispensary',
+  34: 'Majengo Dispensary (Mombasa)',
+  35: 'Maweni CDF Dispensary',
+  36: 'Mikindani (MCM) Dispensary',
+  37: 'Mtongwe (MCM) Dispensary',
+  38: 'Mwembe Tayari Dispensary',
+  39: 'Shika Adabu (MCM) Dispensary',
+  40: 'Shimo La Tewa Annex Dispensary (GK Prison)',
+  41: 'Bokole CDF Dispensary',
+  42: 'Coast General Teaching and Referral Hospital (Chaani Outreach Centre)',
+  43: 'Coast General Teaching and Referral Hospital Vikwatani Outreach Centre',
+  44: 'Jomvu Model Health Centre',
+  45: 'Kisauni Health Centre',
+  46: 'Kongowea Health Centre',
+  47: 'Mbuta Model Health Centre',
+  48: 'Miritini CDF Health Centre',
+  49: 'Mlaleo Health Centre (MOH)',
+  50: 'Mvita Dispensary',
+  51: 'Shimo-La Tewa Health Centre (GK Prison)',
+  52: "Ziwa la ngo'mbe Health centre",
+  53: 'Likoni Subcounty Hospital',
+  54: 'Mrima Maternity Hospital',
+  55: 'Port Reitz Sub County Hospital',
+  56: 'Tudor District Hospital (Mombasa)',
+  57: 'Coast General Teaching and Referral Hospital',
+  58: 'Kasikeu Dispensary',
+  59: 'Tulimani Health Centre',
+  60: 'Kalulini Health Centre (Kibwezi)',
+  61: 'Ilatu Health Centre',
+  62: 'Masongaleni Health Centre',
+  63: 'Kilala Health Centre',
+  64: 'Kyambeke Health Centre',
+  65: 'Ngwata Health Centre',
+  66: 'Kanzokea Health Centre',
+  67: 'Nziu Health Centre',
+  68: 'Kalawa Sub County Hospital',
+  69: 'Kathonzweni Health Centre',
+  70: 'Itumbule Health Centre',
+  71: 'Mavindini Health Centre',
+  72: 'Nthongoni Health Centre',
+  73: 'Emali Model Health Centre',
+  74: 'Athi Kamunyuni Health Centre',
+  75: 'Kisau Sub County Hospital',
+  76: 'Mtito Andei Sub County Hospital',
+  77: 'Mukuyuni Sub County Hospital',
+  78: 'Mbooni Sub County Hospital',
+  79: 'Kibwezi Sub County Hospital',
+  80: 'Matiliku Sub County Hospital',
+  81: 'Sultan Hamud Sub County Hospital',
+  82: 'Makindu Sub County Hospital',
+  83: 'Kambu Sub County Hospital',
+  84: 'Tawa Sub County Hospial',
+  85: 'Kikoko Mission Hospital',
+  86: 'Kilungu Sub County Hospital',
+  87: 'Makueni County Referral Hospital',
+};
+
+// ---------- MAIN ENTRY POINTS ----------
+
+function pullAllForms() {
+  const token = getApiToken();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  FORM_CONFIG.forEach(function (form) {
+    try {
+      Logger.log('Pulling form: ' + form.uid + ' → "' + form.sheetName + '"');
+      let records = fetchAllSubmissions(form.uid, token);
+      if (form.sheetName === 'Newborn Unit') {
+        records = records.map(transformNewbornUnitRecord_);
+      }
+      const result = appendNewRecordsToSheet(ss, form.sheetName, records);
+      Logger.log(
+        'Sheet "' + form.sheetName + '": appended ' + result.appended +
+        ' new row(s); skipped ' + result.skipped + ' existing uuid(s).'
+      );
+    } catch (err) {
+      Logger.log('ERROR pulling ' + form.uid + ': ' + err.message);
+    }
+  });
+}
+
+function fullRefreshAllForms() {
+  const token = getApiToken();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  FORM_CONFIG.forEach(function (form) {
+    try {
+      Logger.log('Full refresh for form: ' + form.uid + ' → "' + form.sheetName + '"');
+      const sheet = ss.getSheetByName(form.sheetName);
+      if (sheet) sheet.clearContents();
+      let records = fetchAllSubmissions(form.uid, token);
+      if (form.sheetName === 'Newborn Unit') {
+        records = records.map(transformNewbornUnitRecord_);
+      }
+      const result = appendNewRecordsToSheet(ss, form.sheetName, records);
+      Logger.log('Sheet "' + form.sheetName + '": wrote ' + result.appended + ' row(s).');
+    } catch (err) {
+      Logger.log('ERROR refreshing ' + form.uid + ': ' + err.message);
+    }
+  });
+}
+
+// ---------- KOBO API ----------
+
+function getApiToken() {
+  const token = PropertiesService.getScriptProperties().getProperty('KOBO_API_TOKEN');
+  if (!token) {
+    throw new Error(
+      'Missing Script Property KOBO_API_TOKEN. ' +
+      'Set it under Project Settings → Script properties.'
+    );
+  }
+  return token;
+}
+
+function fetchAllSubmissions(assetUid, token) {
+  let allResults = [];
+  let start = 0;
+  let total = null;
+
+  do {
+    const url = KOBO_BASE_URL + '/api/v2/assets/' + assetUid + '/data.json'
+      + '?limit=' + PAGE_SIZE + '&start=' + start;
+
+    const response = UrlFetchApp.fetch(url, {
+      method: 'get',
+      headers: { Authorization: 'Token ' + token },
+      muteHttpExceptions: true,
+    });
+
+    const code = response.getResponseCode();
+    if (code !== 200) {
+      throw new Error('Kobo API returned HTTP ' + code + ' for ' + assetUid + ': ' + response.getContentText());
+    }
+
+    const json = JSON.parse(response.getContentText());
+    total = json.count;
+    allResults = allResults.concat(json.results);
+    start += PAGE_SIZE;
+    Utilities.sleep(200);
+  } while (start < total);
+
+  return allResults;
+}
+
+// ---------- NEWBORN UNIT TRANSFORMS ----------
+
+function transformNewbornUnitRecord_(rec) {
+  const out = {};
+  const rawKeysToDrop = {
+    starttime: true,
+    endtime: true,
+    today: true,
+    start: true,
+    end: true,
+    'facility_profile/county': true,
+    'facility_profile/facility': true,
+    'facility_profile/gazetted_facility': true,
+    'facility_profile/contact': true,
+    'facility_profile/nam_contact': true,
+  };
+
+  Object.keys(rec).forEach(function (key) {
+    if (!rawKeysToDrop[key]) out[key] = rec[key];
+  });
+
+  const dateStarted = formatDateMinute_(firstValue_(rec, ['starttime', 'start']));
+  const dateEnded = formatDateMinute_(firstValue_(rec, ['endtime', 'end']));
+  const dateSubmitted = formatDateMinute_(firstValue_(rec, ['today', '_submission_time']));
+
+  out.date_started = dateStarted;
+  out.date_ended = dateEnded;
+  out.date_submitted = dateSubmitted;
+  out.county = lookupCoded_(rec['facility_profile/county'], COUNTY_MAP);
+
+  const facilityMap = isOnOrAfterCutoff_(dateSubmitted, FACILITY_MAP_CUTOFF)
+    ? FACILITY_MAP_FROM_2026
+    : FACILITY_MAP_BEFORE_2026;
+  out.facility = lookupCoded_(rec['facility_profile/facility'], facilityMap);
+  out.facility_level = lookupCoded_(rec['facility_profile/gazetted_facility'], FACILITY_LEVEL_MAP);
+  out.contact_person = lookupCoded_(rec['facility_profile/contact'], CONTACT_PERSON_MAP);
+
+  const nameContact = rec['facility_profile/nam_contact'];
+  out.name_contact = nameContact === undefined || nameContact === null ? '' : nameContact;
+  return out;
+}
+
+function firstValue_(rec, keys) {
+  for (let i = 0; i < keys.length; i++) {
+    const v = rec[keys[i]];
+    if (v !== undefined && v !== null && v !== '') return v;
+  }
+  return '';
+}
+
+function formatDateMinute_(value) {
+  if (value === undefined || value === null || value === '') return '';
+  const d = new Date(value);
+  if (isNaN(d.getTime())) {
+    const s = String(value);
+    const m = s.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/);
+    if (m) return m[1] + ' ' + m[2];
+    return s;
+  }
+  return Utilities.formatDate(d, Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm');
+}
+
+function isOnOrAfterCutoff_(dateSubmittedFormatted, cutoffYmd) {
+  if (!dateSubmittedFormatted) return false;
+  return String(dateSubmittedFormatted).substring(0, 10) >= cutoffYmd;
+}
+
+function lookupCoded_(raw, map) {
+  if (raw === undefined || raw === null || raw === '') return '';
+  const keyNum = Number(raw);
+  if (!isNaN(keyNum) && map[keyNum] !== undefined) return map[keyNum];
+  const keyStr = String(raw);
+  if (map[keyStr] !== undefined) return map[keyStr];
+  return keyStr;
+}
+
+// ---------- SHEET WRITING (UUID INCREMENTAL) ----------
+
+function appendNewRecordsToSheet(ss, sheetName, records) {
+  let sheet = ss.getSheetByName(sheetName);
+  if (!sheet) sheet = ss.insertSheet(sheetName);
+
+  if (!records || records.length === 0) {
+    if (sheet.getLastRow() === 0) {
+      sheet.getRange(1, 1).setValue('No submissions found.');
+    }
+    return { appended: 0, skipped: 0 };
+  }
+
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  const firstCell = lastRow > 0 ? String(sheet.getRange(1, 1).getValue()) : '';
+  const isEmptyOrPlaceholder =
+    lastRow === 0 ||
+    lastCol === 0 ||
+    (lastRow === 1 && firstCell === 'No submissions found.');
+
+  if (isEmptyOrPlaceholder) {
+    sheet.clearContents();
+    const headers = ensureUuidFirst_(buildHeaderUnion_(records));
+    const preferred = [
+      UUID_FIELD,
+      'date_started',
+      'date_ended',
+      'date_submitted',
+      'county',
+      'facility',
+      'facility_level',
+      'contact_person',
+      'name_contact',
+    ];
+    writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
+    sheet.setFrozenRows(1);
+    return { appended: records.length, skipped: 0 };
+  }
+
+  let headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(String);
+  const uuidColIndex = headers.indexOf(UUID_FIELD);
+
+  if (uuidColIndex === -1) {
+    throw new Error(
+      'Sheet "' + sheetName + '" has no "' + UUID_FIELD +
+      '" column. Run fullRefreshAllForms() once to rebuild tabs.'
+    );
+  }
+
+  const existingUuidSet = {};
+  if (lastRow >= 2) {
+    const numDataRows = lastRow - 1;
+    const uuidValues = sheet.getRange(2, uuidColIndex + 1, numDataRows, 1).getValues();
+    uuidValues.forEach(function (row) {
+      if (row[0] !== '' && row[0] !== null && row[0] !== undefined) {
+        existingUuidSet[String(row[0])] = true;
+      }
+    });
+  }
+
+  const newRecords = records.filter(function (rec) {
+    const uuid = rec[UUID_FIELD];
+    if (uuid === undefined || uuid === null || uuid === '') return false;
+    return !existingUuidSet[String(uuid)];
+  });
+
+  const skipped = records.length - newRecords.length;
+  if (newRecords.length === 0) return { appended: 0, skipped: skipped };
+
+  const headerSet = {};
+  headers.forEach(function (h) { headerSet[h] = true; });
+  buildHeaderUnion_(newRecords).forEach(function (key) {
+    if (!headerSet[key]) {
+      headers.push(key);
+      headerSet[key] = true;
+    }
+  });
+
+  if (headers.length > lastCol) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+
+  writeRows_(sheet, headers, newRecords, lastRow + 1, false);
+  sheet.setFrozenRows(1);
+  return { appended: newRecords.length, skipped: skipped };
+}
+
+function buildHeaderUnion_(records) {
+  const headerSet = {};
+  records.forEach(function (rec) {
+    Object.keys(rec).forEach(function (key) { headerSet[key] = true; });
+  });
+  return Object.keys(headerSet);
+}
+
+function ensureUuidFirst_(headers) {
+  return [UUID_FIELD].concat(headers.filter(function (h) { return h !== UUID_FIELD; }));
+}
+
+function orderHeaders_(headers, preferredFront) {
+  const set = {};
+  headers.forEach(function (h) { set[h] = true; });
+  const front = preferredFront.filter(function (h) { return set[h]; });
+  const frontSet = {};
+  front.forEach(function (h) { frontSet[h] = true; });
+  return front.concat(headers.filter(function (h) { return !frontSet[h]; }));
+}
+
+function flattenCell_(val) {
+  if (val === undefined || val === null) return '';
+  if (typeof val === 'object') return JSON.stringify(val);
+  return val;
+}
+
+function writeRows_(sheet, headers, records, startRow, writeHeader) {
+  if (writeHeader) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+  const rows = records.map(function (rec) {
+    return headers.map(function (h) { return flattenCell_(rec[h]); });
+  });
+  if (rows.length > 0) {
+    // getRange(row, column, numRows, numColumns) — counts, not end indices
+    sheet.getRange(startRow, 1, rows.length, headers.length).setValues(rows);
+  }
+}
+
+function createDailyTrigger() {
+  ScriptApp.newTrigger('pullAllForms')
+    .timeBased()
+    .everyDays(1)
+    .atHour(6)
+    .create();
+}
