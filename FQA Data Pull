@@ -454,6 +454,10 @@ function transformNewbornUnitRecord_(rec) {
     'structure/signs': true, 'structure/charter': true, 'structure/cots': true,
     'structure/kmc_area': true, 'structure/room_temp': true, 'structure/draught': true,
     'structure/priv_room': true,
+    'structure/couns_room': true, 'structure/worktop': true, 'structure/desk': true,
+    'structure/neo_space': true, 'structure/iso_room': true, 'structure/resus_area': true,
+    'structure/sluice': true, 'structure/temp_store': true, 'structure/cctv': true,
+    'structure/dust': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -587,6 +591,16 @@ function transformNewbornUnitRecord_(rec) {
   out.room_temp = lookupCoded_(rec['structure/room_temp'], YES_NO_MAP);
   out.draught = lookupCoded_(rec['structure/draught'], YES_NO_MAP);
   out.private_room = lookupCoded_(rec['structure/priv_room'], YES_NO_MAP);
+  out.counselling_room = lookupCoded_(rec['structure/couns_room'], YES_NO_MAP);
+  out.worktop = lookupCoded_(rec['structure/worktop'], YES_NO_MAP);
+  out.nurse_desk = lookupCoded_(rec['structure/desk'], YES_NO_MAP);
+  out.space_sick_neonates = lookupCoded_(rec['structure/neo_space'], YES_NO_MAP);
+  out.isolation_room = lookupCoded_(rec['structure/iso_room'], YES_NO_MAP);
+  out.resuscitation_area = lookupCoded_(rec['structure/resus_area'], YES_NO_MAP);
+  out.sluice_room = lookupCoded_(rec['structure/sluice'], YES_NO_MAP);
+  out.temporary_storage = lookupCoded_(rec['structure/temp_store'], YES_NO_MAP);
+  out.cctv = lookupCoded_(rec['structure/cctv'], YES_NO_MAP);
+  out.dust_evidence = lookupCoded_(rec['structure/dust'], YES_NO_MAP);
 
   return out;
 }
@@ -690,7 +704,9 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'menstrual_hygiene', 'maintenance_infrastructure', 'well_lit', 'ventilation',
       'procedure_rooms', 'changing_area', 'kitchionette', 'fire_extinguishers',
       'clear_signage', 'clear_charter', 'cots_incubator', 'kmc_area', 'room_temp',
-      'draught', 'private_room',
+      'draught', 'private_room', 'counselling_room', 'worktop', 'nurse_desk',
+      'space_sick_neonates', 'isolation_room', 'resuscitation_area', 'sluice_room',
+      'temporary_storage', 'cctv', 'dust_evidence',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
