@@ -476,6 +476,9 @@ function transformNewbornUnitRecord_(rec) {
     'equip/glucometer': true,
     'equip/pump': true, 'equip/bulbs': true, 'equip/therm': true,
     'equip/low_therm': true, 'equip/scale': true,
+    'commodities/tetraycline': true, 'commodities/chlorhexidine': true,
+    'commodities/iv_fluid': true, 'commodities/vitk': true,
+    'commodities/latex': true, 'commodities/sterile': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -641,6 +644,12 @@ function transformNewbornUnitRecord_(rec) {
   out.thermometer_nbu = lookupCoded_(rec['equip/therm'], ALWAYS_SOMETIMES_NEVER_MAP);
   out.thermometer_readings = lookupCoded_(rec['equip/low_therm'], YES_NO_MAP);
   out.weighing_scale = lookupCoded_(rec['equip/scale'], EQUIP_FUNCTIONAL_MAP);
+  out.tetraycline = lookupCoded_(rec['commodities/tetraycline'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.chlorhexidine = lookupCoded_(rec['commodities/chlorhexidine'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.iv_fluid = lookupCoded_(rec['commodities/iv_fluid'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.vitk = lookupCoded_(rec['commodities/vitk'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.latex = lookupCoded_(rec['commodities/latex'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.sterile = lookupCoded_(rec['commodities/sterile'], NEWBORN_ADMISSION_AVAIL_MAP);
 
   return out;
 }
@@ -754,6 +763,7 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'stethoscopes_nbu', 'glucometer_nbu',
       'sunction_pump', 'sunction_bulbs', 'thermometer_nbu', 'thermometer_readings',
       'weighing_scale',
+      'tetraycline', 'chlorhexidine', 'iv_fluid', 'vitk', 'latex', 'sterile',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
