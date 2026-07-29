@@ -474,6 +474,8 @@ function transformNewbornUnitRecord_(rec) {
     'equip/monitors': true, 'equip/neobp': true, 'equip/oximeters': true,
     'equip/trans_kit': true, 'equip/drip_stands': true, 'equip/stethoscopes': true,
     'equip/glucometer': true,
+    'equip/pump': true, 'equip/bulbs': true, 'equip/therm': true,
+    'equip/low_therm': true, 'equip/scale': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -634,6 +636,11 @@ function transformNewbornUnitRecord_(rec) {
   out.drip_stands = lookupCoded_(rec['equip/drip_stands'], YES_NO_MAP);
   out.stethoscopes_nbu = lookupCoded_(rec['equip/stethoscopes'], ALWAYS_SOMETIMES_NEVER_MAP);
   out.glucometer_nbu = lookupCoded_(rec['equip/glucometer'], EQUIP_FUNCTIONAL_MAP);
+  out.sunction_pump = lookupCoded_(rec['equip/pump'], EQUIP_FUNCTIONAL_MAP);
+  out.sunction_bulbs = lookupCoded_(rec['equip/bulbs'], YES_NO_MAP);
+  out.thermometer_nbu = lookupCoded_(rec['equip/therm'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.thermometer_readings = lookupCoded_(rec['equip/low_therm'], YES_NO_MAP);
+  out.weighing_scale = lookupCoded_(rec['equip/scale'], EQUIP_FUNCTIONAL_MAP);
 
   return out;
 }
@@ -745,6 +752,8 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'wall_thermometer', 'exam_light_availabel', 'equipment_cpap', 'monitors',
       'neonatal_bp', 'oximeters_neonates', 'transfusion_kit', 'drip_stands',
       'stethoscopes_nbu', 'glucometer_nbu',
+      'sunction_pump', 'sunction_bulbs', 'thermometer_nbu', 'thermometer_readings',
+      'weighing_scale',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
