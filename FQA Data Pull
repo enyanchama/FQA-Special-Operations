@@ -450,6 +450,10 @@ function transformNewbornUnitRecord_(rec) {
     'sanitation/clean': true, 'sanitation/access': true, 'sanitation/menstrual': true,
     'structure/maintenance': true, 'structure/lighting': true, 'structure/ventilation': true,
     'structure/proc_rooms': true,
+    'structure/chang_area': true, 'structure/kitchionette': true, 'structure/fire': true,
+    'structure/signs': true, 'structure/charter': true, 'structure/cots': true,
+    'structure/kmc_area': true, 'structure/room_temp': true, 'structure/draught': true,
+    'structure/priv_room': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -573,6 +577,16 @@ function transformNewbornUnitRecord_(rec) {
   out.well_lit = lookupCoded_(rec['structure/lighting'], YES_NO_MAP);
   out.ventilation = lookupCoded_(rec['structure/ventilation'], YES_NO_MAP);
   out.procedure_rooms = toIntegerOrBlank_(rec['structure/proc_rooms']);
+  out.changing_area = lookupCoded_(rec['structure/chang_area'], YES_NO_MAP);
+  out.kitchionette = lookupCoded_(rec['structure/kitchionette'], YES_NO_MAP);
+  out.fire_extinguishers = lookupCoded_(rec['structure/fire'], YES_NO_MAP);
+  out.clear_signage = lookupCoded_(rec['structure/signs'], YES_NO_MAP);
+  out.clear_charter = lookupCoded_(rec['structure/charter'], YES_NO_MAP);
+  out.cots_incubator = lookupCoded_(rec['structure/cots'], YES_NO_MAP);
+  out.kmc_area = lookupCoded_(rec['structure/kmc_area'], YES_NO_MAP);
+  out.room_temp = lookupCoded_(rec['structure/room_temp'], YES_NO_MAP);
+  out.draught = lookupCoded_(rec['structure/draught'], YES_NO_MAP);
+  out.private_room = lookupCoded_(rec['structure/priv_room'], YES_NO_MAP);
 
   return out;
 }
@@ -674,7 +688,9 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'sharp3_4full', 'latrine', 'latrine_clients', 'handwashing_station',
       'disinfect_washrooms', 'clean_washroom', 'access_disability',
       'menstrual_hygiene', 'maintenance_infrastructure', 'well_lit', 'ventilation',
-      'procedure_rooms',
+      'procedure_rooms', 'changing_area', 'kitchionette', 'fire_extinguishers',
+      'clear_signage', 'clear_charter', 'cots_incubator', 'kmc_area', 'room_temp',
+      'draught', 'private_room',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
