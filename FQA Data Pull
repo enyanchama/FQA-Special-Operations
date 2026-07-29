@@ -441,6 +441,8 @@ function transformNewbornUnitRecord_(rec) {
     'sanitation/wat_sour': true, 'sanitation/wav_avail': true, 'sanitation/drainage': true,
     'sanitation/sinks': true, 'sanitation/hand': true, 'sanitation/waste': true,
     'sanitation/bins': true,
+    'sanitation/clean_reg': true, 'sanitation/decontamination': true,
+    'sanitation/checklist': true, 'sanitation/utensil': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -545,6 +547,10 @@ function transformNewbornUnitRecord_(rec) {
   out.hand_hygiene = lookupCoded_(rec['sanitation/hand'], HAND_HYGIENE_MAP);
   out.waste_management = lookupCoded_(rec['sanitation/waste'], WASTE_MANAGEMENT_MAP);
   out.waste_segregation = lookupCoded_(rec['sanitation/bins'], YES_NO_MAP);
+  out.cleaning_register = lookupCoded_(rec['sanitation/clean_reg'], YES_NO_MAP);
+  out.decontamination_area = lookupCoded_(rec['sanitation/decontamination'], YES_NO_MAP);
+  out.decontamination_checklist = lookupCoded_(rec['sanitation/checklist'], YES_NO_MAP);
+  out.utensil_cleaning_area = lookupCoded_(rec['sanitation/utensil'], YES_NO_MAP);
 
   return out;
 }
@@ -641,6 +647,8 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'kmc_sop', 'handwash_sop', 'referral_sop',
       'water_source', 'water_available_consistently', 'drainage_system',
       'separate_sink', 'hand_hygiene', 'waste_management', 'waste_segregation',
+      'cleaning_register', 'decontamination_area', 'decontamination_checklist',
+      'utensil_cleaning_area',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
