@@ -483,6 +483,7 @@ function transformNewbornUnitRecord_(rec) {
     'commodities/cups': true, 'commodities/syringes': true,
     'commodities/needles': true, 'commodities/microdrippers': true,
     'commodities/iv_sets': true,
+    'adherence/kmc2': true, 'adherence/preterm': true, 'adherence/feeding': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -661,6 +662,9 @@ function transformNewbornUnitRecord_(rec) {
   out.needles_sizes = lookupCoded_(rec['commodities/needles'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.microdrippers = lookupCoded_(rec['commodities/microdrippers'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.iv_sets = lookupCoded_(rec['commodities/iv_sets'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.kmc_initiated = lookupCoded_(rec['adherence/kmc2'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.preterm_lowbirth = lookupCoded_(rec['adherence/preterm'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.feeding_freq = lookupCoded_(rec['adherence/feeding'], ALWAYS_SOMETIMES_NEVER_MAP);
 
   return out;
 }
@@ -777,6 +781,7 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'tetraycline', 'chlorhexidine', 'iv_fluid', 'vitk', 'latex', 'sterile',
       'soluset', 'infant_formula', 'feeding_cups', 'syringe_sizes',
       'needles_sizes', 'microdrippers', 'iv_sets',
+      'kmc_initiated', 'preterm_lowbirth', 'feeding_freq',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
