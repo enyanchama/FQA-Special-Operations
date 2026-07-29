@@ -82,6 +82,16 @@ const WATER_SOURCE_MAP = {
   2: 'Present, non-functional',
   3: 'Not present',
 };
+const HAND_HYGIENE_MAP = {
+  1: 'Present in ALL service areas',
+  2: 'Present in some service areas',
+  3: 'Not present in service areas',
+};
+const WASTE_MANAGEMENT_MAP = {
+  1: 'Present, well displayed',
+  2: 'Present, not displayed',
+  3: 'Not present',
+};
 
 const FACILITY_MAP_FROM_2026 = {
   1: 'Kitutu Chache North Sub County Referral Hospital',
@@ -532,8 +542,8 @@ function transformNewbornUnitRecord_(rec) {
   out.water_available_consistently = lookupCoded_(rec['sanitation/wav_avail'], YES_NO_MAP);
   out.drainage_system = lookupCoded_(rec['sanitation/drainage'], YES_NO_MAP);
   out.separate_sink = lookupCoded_(rec['sanitation/sinks'], YES_NO_MAP);
-  out.hand_hygiene = lookupCoded_(rec['sanitation/hand'], YES_NO_MAP);
-  out.waste_management = lookupCoded_(rec['sanitation/waste'], YES_NO_MAP);
+  out.hand_hygiene = lookupCoded_(rec['sanitation/hand'], HAND_HYGIENE_MAP);
+  out.waste_management = lookupCoded_(rec['sanitation/waste'], WASTE_MANAGEMENT_MAP);
   out.waste_segregation = lookupCoded_(rec['sanitation/bins'], YES_NO_MAP);
 
   return out;
