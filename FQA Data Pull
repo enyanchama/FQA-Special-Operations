@@ -92,6 +92,11 @@ const WASTE_MANAGEMENT_MAP = {
   2: 'Present, not displayed',
   3: 'Not present',
 };
+const EQUIP_FUNCTIONAL_MAP = {
+  1: 'Yes, functional',
+  2: 'Yes, non-functional',
+  3: 'No',
+};
 
 const FACILITY_MAP_FROM_2026 = {
   1: 'Kitutu Chache North Sub County Referral Hospital',
@@ -458,6 +463,8 @@ function transformNewbornUnitRecord_(rec) {
     'structure/neo_space': true, 'structure/iso_room': true, 'structure/resus_area': true,
     'structure/sluice': true, 'structure/temp_store': true, 'structure/cctv': true,
     'structure/dust': true,
+    'equip/beds': true, 'equip/resuscitaires': true, 'equip/bed_space': true,
+    'equip/lamp': true, 'equip/warmer': true, 'equip/heat': true, 'equip/clock': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -601,6 +608,13 @@ function transformNewbornUnitRecord_(rec) {
   out.temporary_storage = lookupCoded_(rec['structure/temp_store'], YES_NO_MAP);
   out.cctv = lookupCoded_(rec['structure/cctv'], YES_NO_MAP);
   out.dust_evidence = lookupCoded_(rec['structure/dust'], YES_NO_MAP);
+  out.baby_beds = toIntegerOrBlank_(rec['equip/beds']);
+  out.resuscitaires_nbu = toIntegerOrBlank_(rec['equip/resuscitaires']);
+  out.bed_space = lookupCoded_(rec['equip/bed_space'], YES_NO_MAP);
+  out.phototherapy_lamp = lookupCoded_(rec['equip/lamp'], EQUIP_FUNCTIONAL_MAP);
+  out.radiant_warmer = lookupCoded_(rec['equip/warmer'], EQUIP_FUNCTIONAL_MAP);
+  out.heat_source = lookupCoded_(rec['equip/heat'], EQUIP_FUNCTIONAL_MAP);
+  out.wall_clock = lookupCoded_(rec['equip/clock'], YES_NO_MAP);
 
   return out;
 }
@@ -707,6 +721,8 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'draught', 'private_room', 'counselling_room', 'worktop', 'nurse_desk',
       'space_sick_neonates', 'isolation_room', 'resuscitation_area', 'sluice_room',
       'temporary_storage', 'cctv', 'dust_evidence',
+      'baby_beds', 'resuscitaires_nbu', 'bed_space', 'phototherapy_lamp',
+      'radiant_warmer', 'heat_source', 'wall_clock',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
