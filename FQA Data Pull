@@ -443,6 +443,10 @@ function transformNewbornUnitRecord_(rec) {
     'sanitation/bins': true,
     'sanitation/clean_reg': true, 'sanitation/decontamination': true,
     'sanitation/checklist': true, 'sanitation/utensil': true,
+    'sanitation/laundry': true, 'sanitation/linen': true,
+    'sanitation/sharp': true, 'sanitation/sharp3_4': true,
+    'sanitation/latrine': true, 'sanitation/lat_client': true,
+    'sanitation/station': true, 'sanitation/disinfect': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -551,6 +555,14 @@ function transformNewbornUnitRecord_(rec) {
   out.decontamination_area = lookupCoded_(rec['sanitation/decontamination'], YES_NO_MAP);
   out.decontamination_checklist = lookupCoded_(rec['sanitation/checklist'], YES_NO_MAP);
   out.utensil_cleaning_area = lookupCoded_(rec['sanitation/utensil'], YES_NO_MAP);
+  out.laundry = lookupCoded_(rec['sanitation/laundry'], YES_NO_MAP);
+  out.linen = lookupCoded_(rec['sanitation/linen'], YES_NO_MAP);
+  out.sharp_container = lookupCoded_(rec['sanitation/sharp'], YES_NO_MAP);
+  out.sharp3_4full = lookupCoded_(rec['sanitation/sharp3_4'], YES_NO_MAP);
+  out.latrine = lookupCoded_(rec['sanitation/latrine'], YES_NO_MAP);
+  out.latrine_clients = lookupCoded_(rec['sanitation/lat_client'], YES_NO_MAP);
+  out.handwashing_station = lookupCoded_(rec['sanitation/station'], YES_NO_MAP);
+  out.disinfect_washrooms = lookupCoded_(rec['sanitation/disinfect'], YES_NO_MAP);
 
   return out;
 }
@@ -648,7 +660,9 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'water_source', 'water_available_consistently', 'drainage_system',
       'separate_sink', 'hand_hygiene', 'waste_management', 'waste_segregation',
       'cleaning_register', 'decontamination_area', 'decontamination_checklist',
-      'utensil_cleaning_area',
+      'utensil_cleaning_area', 'laundry', 'linen', 'sharp_container',
+      'sharp3_4full', 'latrine', 'latrine_clients', 'handwashing_station',
+      'disinfect_washrooms',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
