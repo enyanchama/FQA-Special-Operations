@@ -484,6 +484,9 @@ function transformNewbornUnitRecord_(rec) {
     'commodities/needles': true, 'commodities/microdrippers': true,
     'commodities/iv_sets': true,
     'adherence/kmc2': true, 'adherence/preterm': true, 'adherence/feeding': true,
+    'adherence/breastmilk': true, 'adherence/express': true, 'adherence/plan': true,
+    'adherence/neonates': true, 'adherence/discharge': true,
+    'adherence/disch_note': true, 'adherence/inf_refer': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -665,6 +668,13 @@ function transformNewbornUnitRecord_(rec) {
   out.kmc_initiated = lookupCoded_(rec['adherence/kmc2'], ALWAYS_SOMETIMES_NEVER_MAP);
   out.preterm_lowbirth = lookupCoded_(rec['adherence/preterm'], ALWAYS_SOMETIMES_NEVER_MAP);
   out.feeding_freq = lookupCoded_(rec['adherence/feeding'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.breastmilk = lookupCoded_(rec['adherence/breastmilk'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.express_milk = lookupCoded_(rec['adherence/express'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.monitoring_plan = lookupCoded_(rec['adherence/plan'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.neonate_review = lookupCoded_(rec['adherence/neonates'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.discharge = lookupCoded_(rec['adherence/discharge'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.discharge_note = lookupCoded_(rec['adherence/disch_note'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.infact_referral = lookupCoded_(rec['adherence/inf_refer'], ALWAYS_SOMETIMES_NEVER_MAP);
 
   return out;
 }
@@ -782,6 +792,8 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'soluset', 'infant_formula', 'feeding_cups', 'syringe_sizes',
       'needles_sizes', 'microdrippers', 'iv_sets',
       'kmc_initiated', 'preterm_lowbirth', 'feeding_freq',
+      'breastmilk', 'express_milk', 'monitoring_plan', 'neonate_review',
+      'discharge', 'discharge_note', 'infact_referral',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
