@@ -449,6 +449,7 @@ function transformNewbornUnitRecord_(rec) {
     'sanitation/station': true, 'sanitation/disinfect': true,
     'sanitation/clean': true, 'sanitation/access': true, 'sanitation/menstrual': true,
     'structure/maintenance': true, 'structure/lighting': true, 'structure/ventilation': true,
+    'structure/proc_rooms': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -571,6 +572,7 @@ function transformNewbornUnitRecord_(rec) {
   out.maintenance_infrastructure = lookupCoded_(rec['structure/maintenance'], YES_NO_MAP);
   out.well_lit = lookupCoded_(rec['structure/lighting'], YES_NO_MAP);
   out.ventilation = lookupCoded_(rec['structure/ventilation'], YES_NO_MAP);
+  out.procedure_rooms = toIntegerOrBlank_(rec['structure/proc_rooms']);
 
   return out;
 }
@@ -672,6 +674,7 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'sharp3_4full', 'latrine', 'latrine_clients', 'handwashing_station',
       'disinfect_washrooms', 'clean_washroom', 'access_disability',
       'menstrual_hygiene', 'maintenance_infrastructure', 'well_lit', 'ventilation',
+      'procedure_rooms',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
