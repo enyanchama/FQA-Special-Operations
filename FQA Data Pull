@@ -97,6 +97,11 @@ const EQUIP_FUNCTIONAL_MAP = {
   2: 'Yes, non-functional',
   3: 'No',
 };
+const ALWAYS_SOMETIMES_NEVER_MAP = {
+  1: 'Always',
+  2: 'Sometimes',
+  3: 'Never',
+};
 
 const FACILITY_MAP_FROM_2026 = {
   1: 'Kitutu Chache North Sub County Referral Hospital',
@@ -465,6 +470,10 @@ function transformNewbornUnitRecord_(rec) {
     'structure/dust': true,
     'equip/beds': true, 'equip/resuscitaires': true, 'equip/bed_space': true,
     'equip/lamp': true, 'equip/warmer': true, 'equip/heat': true, 'equip/clock': true,
+    'equip/thermometer': true, 'equip/exam_light': true, 'equip/cpap': true,
+    'equip/monitors': true, 'equip/neobp': true, 'equip/oximeters': true,
+    'equip/trans_kit': true, 'equip/drip_stands': true, 'equip/stethoscopes': true,
+    'equip/glucometer': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -615,6 +624,16 @@ function transformNewbornUnitRecord_(rec) {
   out.radiant_warmer = lookupCoded_(rec['equip/warmer'], EQUIP_FUNCTIONAL_MAP);
   out.heat_source = lookupCoded_(rec['equip/heat'], EQUIP_FUNCTIONAL_MAP);
   out.wall_clock = lookupCoded_(rec['equip/clock'], YES_NO_MAP);
+  out.wall_thermometer = lookupCoded_(rec['equip/thermometer'], YES_NO_MAP);
+  out.exam_light_availabel = lookupCoded_(rec['equip/exam_light'], YES_NO_MAP);
+  out.equipment_cpap = lookupCoded_(rec['equip/cpap'], EQUIP_FUNCTIONAL_MAP);
+  out.monitors = lookupCoded_(rec['equip/monitors'], EQUIP_FUNCTIONAL_MAP);
+  out.neonatal_bp = lookupCoded_(rec['equip/neobp'], YES_NO_MAP);
+  out.oximeters_neonates = lookupCoded_(rec['equip/oximeters'], EQUIP_FUNCTIONAL_MAP);
+  out.transfusion_kit = lookupCoded_(rec['equip/trans_kit'], YES_NO_MAP);
+  out.drip_stands = lookupCoded_(rec['equip/drip_stands'], YES_NO_MAP);
+  out.stethoscopes_nbu = lookupCoded_(rec['equip/stethoscopes'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.glucometer_nbu = lookupCoded_(rec['equip/glucometer'], EQUIP_FUNCTIONAL_MAP);
 
   return out;
 }
@@ -723,6 +742,9 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'temporary_storage', 'cctv', 'dust_evidence',
       'baby_beds', 'resuscitaires_nbu', 'bed_space', 'phototherapy_lamp',
       'radiant_warmer', 'heat_source', 'wall_clock',
+      'wall_thermometer', 'exam_light_availabel', 'equipment_cpap', 'monitors',
+      'neonatal_bp', 'oximeters_neonates', 'transfusion_kit', 'drip_stands',
+      'stethoscopes_nbu', 'glucometer_nbu',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
