@@ -102,6 +102,10 @@ const ALWAYS_SOMETIMES_NEVER_MAP = {
   2: 'Sometimes',
   3: 'Never',
 };
+const NBU_OPEN_MAP = {
+  1: '< 24 hours per day',
+  3: '24 hours per day',
+};
 
 const FACILITY_MAP_FROM_2026 = {
   1: 'Kitutu Chache North Sub County Referral Hospital',
@@ -487,6 +491,10 @@ function transformNewbornUnitRecord_(rec) {
     'adherence/breastmilk': true, 'adherence/express': true, 'adherence/plan': true,
     'adherence/neonates': true, 'adherence/discharge': true,
     'adherence/disch_note': true, 'adherence/inf_refer': true,
+    'adherence/system': true, 'adherence/caregiver': true, 'adherence/weight': true,
+    'adherence/birth_weight': true, 'adherence/condition': true,
+    'adherence/gestation': true, 'adherence/paediatric': true, 'adherence/care': true,
+    'Section_13_Hours_of_Operation/lab_open': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -675,6 +683,15 @@ function transformNewbornUnitRecord_(rec) {
   out.discharge = lookupCoded_(rec['adherence/discharge'], ALWAYS_SOMETIMES_NEVER_MAP);
   out.discharge_note = lookupCoded_(rec['adherence/disch_note'], ALWAYS_SOMETIMES_NEVER_MAP);
   out.infact_referral = lookupCoded_(rec['adherence/inf_refer'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.system_near_nbu = lookupCoded_(rec['adherence/system'], YES_NO_MAP);
+  out.caregiver = lookupCoded_(rec['adherence/caregiver'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.weight_gain = lookupCoded_(rec['adherence/weight'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.birth_weight = lookupCoded_(rec['adherence/birth_weight'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.condition_stable = lookupCoded_(rec['adherence/condition'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.gestation_34wks = lookupCoded_(rec['adherence/gestation'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.paediatric_rco = lookupCoded_(rec['adherence/paediatric'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.specialized_care = lookupCoded_(rec['adherence/care'], ALWAYS_SOMETIMES_NEVER_MAP);
+  out.nbu_open = lookupCoded_(rec['Section_13_Hours_of_Operation/lab_open'], NBU_OPEN_MAP);
 
   return out;
 }
@@ -794,6 +811,9 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'kmc_initiated', 'preterm_lowbirth', 'feeding_freq',
       'breastmilk', 'express_milk', 'monitoring_plan', 'neonate_review',
       'discharge', 'discharge_note', 'infact_referral',
+      'system_near_nbu', 'caregiver', 'weight_gain', 'birth_weight',
+      'condition_stable', 'gestation_34wks', 'paediatric_rco', 'specialized_care',
+      'nbu_open',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
