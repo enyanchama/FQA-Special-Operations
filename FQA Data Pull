@@ -479,6 +479,10 @@ function transformNewbornUnitRecord_(rec) {
     'commodities/tetraycline': true, 'commodities/chlorhexidine': true,
     'commodities/iv_fluid': true, 'commodities/vitk': true,
     'commodities/latex': true, 'commodities/sterile': true,
+    'commodities/soluset': true, 'commodities/inf_form': true,
+    'commodities/cups': true, 'commodities/syringes': true,
+    'commodities/needles': true, 'commodities/microdrippers': true,
+    'commodities/iv_sets': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -650,6 +654,13 @@ function transformNewbornUnitRecord_(rec) {
   out.vitk = lookupCoded_(rec['commodities/vitk'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.latex = lookupCoded_(rec['commodities/latex'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.sterile = lookupCoded_(rec['commodities/sterile'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.soluset = lookupCoded_(rec['commodities/soluset'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.infant_formula = lookupCoded_(rec['commodities/inf_form'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.feeding_cups = lookupCoded_(rec['commodities/cups'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.syringe_sizes = lookupCoded_(rec['commodities/syringes'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.needles_sizes = lookupCoded_(rec['commodities/needles'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.microdrippers = lookupCoded_(rec['commodities/microdrippers'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.iv_sets = lookupCoded_(rec['commodities/iv_sets'], NEWBORN_ADMISSION_AVAIL_MAP);
 
   return out;
 }
@@ -764,6 +775,8 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'sunction_pump', 'sunction_bulbs', 'thermometer_nbu', 'thermometer_readings',
       'weighing_scale',
       'tetraycline', 'chlorhexidine', 'iv_fluid', 'vitk', 'latex', 'sterile',
+      'soluset', 'infant_formula', 'feeding_cups', 'syringe_sizes',
+      'needles_sizes', 'microdrippers', 'iv_sets',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
