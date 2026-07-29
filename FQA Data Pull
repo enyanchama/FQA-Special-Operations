@@ -447,6 +447,8 @@ function transformNewbornUnitRecord_(rec) {
     'sanitation/sharp': true, 'sanitation/sharp3_4': true,
     'sanitation/latrine': true, 'sanitation/lat_client': true,
     'sanitation/station': true, 'sanitation/disinfect': true,
+    'sanitation/clean': true, 'sanitation/access': true, 'sanitation/menstrual': true,
+    'structure/maintenance': true, 'structure/lighting': true, 'structure/ventilation': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -563,6 +565,12 @@ function transformNewbornUnitRecord_(rec) {
   out.latrine_clients = lookupCoded_(rec['sanitation/lat_client'], YES_NO_MAP);
   out.handwashing_station = lookupCoded_(rec['sanitation/station'], YES_NO_MAP);
   out.disinfect_washrooms = lookupCoded_(rec['sanitation/disinfect'], YES_NO_MAP);
+  out.clean_washroom = lookupCoded_(rec['sanitation/clean'], YES_NO_MAP);
+  out.access_disability = lookupCoded_(rec['sanitation/access'], YES_NO_MAP);
+  out.menstrual_hygiene = lookupCoded_(rec['sanitation/menstrual'], YES_NO_MAP);
+  out.maintenance_infrastructure = lookupCoded_(rec['structure/maintenance'], YES_NO_MAP);
+  out.well_lit = lookupCoded_(rec['structure/lighting'], YES_NO_MAP);
+  out.ventilation = lookupCoded_(rec['structure/ventilation'], YES_NO_MAP);
 
   return out;
 }
@@ -662,7 +670,8 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'cleaning_register', 'decontamination_area', 'decontamination_checklist',
       'utensil_cleaning_area', 'laundry', 'linen', 'sharp_container',
       'sharp3_4full', 'latrine', 'latrine_clients', 'handwashing_station',
-      'disinfect_washrooms',
+      'disinfect_washrooms', 'clean_washroom', 'access_disability',
+      'menstrual_hygiene', 'maintenance_infrastructure', 'well_lit', 'ventilation',
     ];
     writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
     sheet.setFrozenRows(1);
