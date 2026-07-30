@@ -646,7 +646,7 @@ function transformNewbornUnitRecord_(rec) {
   out.heat_source = lookupCoded_(rec['equip/heat'], EQUIP_FUNCTIONAL_MAP);
   out.wall_clock = lookupCoded_(rec['equip/clock'], YES_NO_MAP);
   out.wall_thermometer = lookupCoded_(rec['equip/thermometer'], YES_NO_MAP);
-  out.exam_light_availabel = lookupCoded_(rec['equip/exam_light'], YES_NO_MAP);
+  out.exam_light_available = lookupCoded_(rec['equip/exam_light'], EQUIP_FUNCTIONAL_MAP);
   out.equipment_cpap = lookupCoded_(rec['equip/cpap'], EQUIP_FUNCTIONAL_MAP);
   out.monitors = lookupCoded_(rec['equip/monitors'], EQUIP_FUNCTIONAL_MAP);
   out.neonatal_bp = lookupCoded_(rec['equip/neobp'], YES_NO_MAP);
@@ -800,7 +800,7 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'temporary_storage', 'cctv', 'dust_evidence',
       'baby_beds', 'resuscitaires_nbu', 'bed_space', 'phototherapy_lamp',
       'radiant_warmer', 'heat_source', 'wall_clock',
-      'wall_thermometer', 'exam_light_availabel', 'equipment_cpap', 'monitors',
+      'wall_thermometer', 'exam_light_available', 'equipment_cpap', 'monitors',
       'neonatal_bp', 'oximeters_neonates', 'transfusion_kit', 'drip_stands',
       'stethoscopes_nbu', 'glucometer_nbu',
       'sunction_pump', 'sunction_bulbs', 'thermometer_nbu', 'thermometer_readings',
