@@ -111,6 +111,11 @@ const NBU_OPEN_MAP = {
   1: '< 24 hours per day',
   3: '24 hours per day',
 };
+const ULTRASOUND_AVAIL_MAP = {
+  1: 'Yes, available in this unit',
+  2: 'No but available in a separate unit in this facility',
+  3: 'Not available in this facility',
+};
 
 /**
  * select_multiple: records/patient_files
@@ -561,6 +566,14 @@ function transformInpatientMaternityRecord_(rec) {
     'facility_profile/county': true, 'facility_profile/facility': true,
     'facility_profile/gaz_facility': true, 'facility_profile/contact': true,
     'facility_profile/nam_contact': true, 'facility_profile/phone_contact': true,
+    'facility_profile/units': true,
+    'services_offered/pocus': true, 'services_offered/ultrasound': true,
+    'services_offered/xray': true, 'services_offered/foetal_viability': true,
+    'services_offered/no_foetuses': true, 'services_offered/gestation': true,
+    'services_offered/anomalies': true, 'services_offered/placenta_det': true,
+    'services_offered/ctg': true, 'services_offered/uterotonis': true,
+    'services_offered/uterotinics_freq': true, 'services_offered/antibiotics': true,
+    'services_offered/antibiotics_001': true, 'services_offered/anticonvulsant': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -573,6 +586,22 @@ function transformInpatientMaternityRecord_(rec) {
   out.date_submitted = dateSubmitted;
 
   assignFacilityProfile_(out, rec, dateSubmitted, 'facility_profile/gaz_facility');
+
+  out.inpatient_unit = lookupCoded_(rec['facility_profile/units'], YES_NO_MAP);
+  out.services_offered_pocus = lookupCoded_(rec['services_offered/pocus'], YES_NO_MAP);
+  out.services_offered_ultrasound = lookupCoded_(rec['services_offered/ultrasound'], ULTRASOUND_AVAIL_MAP);
+  out.services_offered_xray = lookupCoded_(rec['services_offered/xray'], YES_NO_MAP);
+  out.foetal_viability = lookupCoded_(rec['services_offered/foetal_viability'], YES_NO_MAP);
+  out.no_foetuses_us = lookupCoded_(rec['services_offered/no_foetuses'], YES_NO_MAP);
+  out.gestational_age_us = lookupCoded_(rec['services_offered/gestation'], YES_NO_MAP);
+  out.featal_anomalies_us = lookupCoded_(rec['services_offered/anomalies'], YES_NO_MAP);
+  out.placenta_insufficiency_us = lookupCoded_(rec['services_offered/placenta_det'], YES_NO_MAP);
+  out.offer_ctg = lookupCoded_(rec['services_offered/ctg'], YES_NO_MAP);
+  out.services_offered_uterotonis = lookupCoded_(rec['services_offered/uterotonis'], YES_NO_MAP);
+  out.uterotonics_frequency = lookupCoded_(rec['services_offered/uterotinics_freq'], YES_NO_MAP);
+  out.services_offered_antibiotics = lookupCoded_(rec['services_offered/antibiotics'], YES_NO_MAP);
+  out.antibiotics_frequency = lookupCoded_(rec['services_offered/antibiotics_001'], YES_NO_MAP);
+  out.offer_anticonvulsant = lookupCoded_(rec['services_offered/anticonvulsant'], YES_NO_MAP);
 
   return out;
 }
@@ -960,7 +989,12 @@ function inpatientMaternityPreferredHeaders_() {
   return [
     UUID_FIELD, 'date_started', 'date_ended', 'date_submitted',
     'county', 'facility', 'facility_level', 'contact_person', 'name_contact',
-    'phone_number',
+    'phone_number', 'inpatient_unit',
+    'services_offered_pocus', 'services_offered_ultrasound', 'services_offered_xray',
+    'foetal_viability', 'no_foetuses_us', 'gestational_age_us', 'featal_anomalies_us',
+    'placenta_insufficiency_us', 'offer_ctg',
+    'services_offered_uterotonis', 'uterotonics_frequency',
+    'services_offered_antibiotics', 'antibiotics_frequency', 'offer_anticonvulsant',
   ];
 }
 
