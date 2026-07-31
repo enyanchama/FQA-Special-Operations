@@ -51,6 +51,11 @@ const LAB_AVAILABILITY_MAP = {
   2: 'No but can be performed in facility laboratory',
   3: 'No cannot be performed at this facility',
 };
+const MATERNITY_LAB_AVAILABILITY_MAP = {
+  1: 'Yes',
+  2: 'No, but can be performed in the facility laboratory',
+  3: 'No, cannot be performed at this facility',
+};
 const UNIT_AVAILABILITY_MAP = {
   1: 'Yes - immediately available in this unit',
   2: 'No but can be performed in facility laboratory',
@@ -574,6 +579,15 @@ function transformInpatientMaternityRecord_(rec) {
     'services_offered/ctg': true, 'services_offered/uterotonis': true,
     'services_offered/uterotinics_freq': true, 'services_offered/antibiotics': true,
     'services_offered/antibiotics_001': true, 'services_offered/anticonvulsant': true,
+    'services_offered/retained': true, 'services_offered/placenta': true,
+    'services_offered/avd': true, 'services_offered/resuscitation': true,
+    'services_offered/perineal_care': true, 'services_offered/ppfp': true,
+    'services_offered/breastfeeding': true, 'services_offered/newborn_care': true,
+    'services_offered/microscopy': true, 'services_offered/hgb': true,
+    'services_offered/urinalysis': true, 'services_offered/urine_rapid': true,
+    'services_offered/urine_protein': true, 'services_offered/urine_glucose': true,
+    'services_offered/hiv_rapid': true, 'services_offered/dbs': true,
+    'services_offered/rpr_vdrl': true, 'services_offered/blood_group': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -602,6 +616,38 @@ function transformInpatientMaternityRecord_(rec) {
   out.services_offered_antibiotics = lookupCoded_(rec['services_offered/antibiotics'], YES_NO_MAP);
   out.antibiotics_frequency = lookupCoded_(rec['services_offered/antibiotics_001'], YES_NO_MAP);
   out.offer_anticonvulsant = lookupCoded_(rec['services_offered/anticonvulsant'], YES_NO_MAP);
+  out.retained_products = lookupCoded_(rec['services_offered/retained'], YES_NO_MAP);
+  out.placenta_removal = lookupCoded_(rec['services_offered/placenta'], YES_NO_MAP);
+  out.offer_avd = lookupCoded_(rec['services_offered/avd'], YES_NO_MAP);
+  out.offer_resuscitation = lookupCoded_(rec['services_offered/resuscitation'], YES_NO_MAP);
+  out.offer_perineal_care = lookupCoded_(rec['services_offered/perineal_care'], YES_NO_MAP);
+  out.offer_ppfp = lookupCoded_(rec['services_offered/ppfp'], YES_NO_MAP);
+  out.breastfeeding_counsel = lookupCoded_(rec['services_offered/breastfeeding'], YES_NO_MAP);
+  out.offer_newborn_care = lookupCoded_(rec['services_offered/newborn_care'], YES_NO_MAP);
+  out.offer_microscopy = lookupCoded_(rec['services_offered/microscopy'], MATERNITY_LAB_AVAILABILITY_MAP);
+  out.offer_hgb = lookupCoded_(rec['services_offered/hgb'], MATERNITY_LAB_AVAILABILITY_MAP);
+  out.services_offered_urinalysis = lookupCoded_(
+    rec['services_offered/urinalysis'], MATERNITY_LAB_AVAILABILITY_MAP
+  );
+  out.offered_urine_rapid = lookupCoded_(
+    rec['services_offered/urine_rapid'], MATERNITY_LAB_AVAILABILITY_MAP
+  );
+  out.offered_urine_protein = lookupCoded_(
+    rec['services_offered/urine_protein'], MATERNITY_LAB_AVAILABILITY_MAP
+  );
+  out.offered_urine_glucose = lookupCoded_(
+    rec['services_offered/urine_glucose'], MATERNITY_LAB_AVAILABILITY_MAP
+  );
+  out['services_offered/hiv_rapid'] = lookupCoded_(
+    rec['services_offered/hiv_rapid'], MATERNITY_LAB_AVAILABILITY_MAP
+  );
+  out.offered_dbs = lookupCoded_(rec['services_offered/dbs'], MATERNITY_LAB_AVAILABILITY_MAP);
+  out.offered_rpr_vdrl = lookupCoded_(
+    rec['services_offered/rpr_vdrl'], MATERNITY_LAB_AVAILABILITY_MAP
+  );
+  out.offered_blood_group = lookupCoded_(
+    rec['services_offered/blood_group'], MATERNITY_LAB_AVAILABILITY_MAP
+  );
 
   return out;
 }
@@ -995,6 +1041,12 @@ function inpatientMaternityPreferredHeaders_() {
     'placenta_insufficiency_us', 'offer_ctg',
     'services_offered_uterotonis', 'uterotonics_frequency',
     'services_offered_antibiotics', 'antibiotics_frequency', 'offer_anticonvulsant',
+    'retained_products', 'placenta_removal', 'offer_avd', 'offer_resuscitation',
+    'offer_perineal_care', 'offer_ppfp', 'breastfeeding_counsel', 'offer_newborn_care',
+    'offer_microscopy', 'offer_hgb', 'services_offered_urinalysis',
+    'offered_urine_rapid', 'offered_urine_protein', 'offered_urine_glucose',
+    'services_offered/hiv_rapid', 'offered_dbs', 'offered_rpr_vdrl',
+    'offered_blood_group',
   ];
 }
 
