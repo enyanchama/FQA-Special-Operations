@@ -8,7 +8,12 @@
 
 const KOBO_BASE_URL = 'https://kobo.humanitarianresponse.info';
 const UUID_FIELD = '_uuid';
-const PAGE_SIZE = 1000;
+/** Smaller pages reduce 502/503 gateway timeouts on large assets. */
+const PAGE_SIZE = 300;
+const KOBO_MAX_RETRIES = 6;
+const KOBO_RETRY_BASE_MS = 2000;
+const KOBO_PAGE_PAUSE_MS = 500;
+const KOBO_FORM_PAUSE_MS = 1500;
 const FACILITY_MAP_CUTOFF = '2026-01-01';
 
 const FORM_CONFIG = [
@@ -438,7 +443,7 @@ const FACILITY_MAP_BEFORE_2026 = {
 function pullAllForms() {
   const token = getApiToken();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  FORM_CONFIG.forEach(function (form) {
+  FORM_CONFIG.forEach(function (form, index) {
     try {
       Logger.log('Pulling form: ' + form.uid + ' → "' + form.sheetName + '"');
       let records = fetchAllSubmissions(form.uid, token);
@@ -449,13 +454,14 @@ function pullAllForms() {
     } catch (err) {
       Logger.log('ERROR pulling ' + form.uid + ': ' + err.message);
     }
+    if (index < FORM_CONFIG.length - 1) Utilities.sleep(KOBO_FORM_PAUSE_MS);
   });
 }
 
 function fullRefreshAllForms() {
   const token = getApiToken();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  FORM_CONFIG.forEach(function (form) {
+  FORM_CONFIG.forEach(function (form, index) {
     try {
       Logger.log('Full refresh for form: ' + form.uid + ' → "' + form.sheetName + '"');
       const sheet = ss.getSheetByName(form.sheetName);
@@ -467,6 +473,7 @@ function fullRefreshAllForms() {
     } catch (err) {
       Logger.log('ERROR refreshing ' + form.uid + ': ' + err.message);
     }
+    if (index < FORM_CONFIG.length - 1) Utilities.sleep(KOBO_FORM_PAUSE_MS);
   });
 }
 
@@ -481,6 +488,37 @@ function getApiToken() {
   return token;
 }
 
+function isTransientKoboStatus_(code) {
+  return code === 429 || code === 502 || code === 503 || code === 504;
+}
+
+/** Fetch one Kobo page with exponential backoff on transient gateway errors. */
+function fetchKoboPage_(url, token, assetUid) {
+  let lastCode = 0;
+  let lastBody = '';
+  for (let attempt = 1; attempt <= KOBO_MAX_RETRIES; attempt++) {
+    const response = UrlFetchApp.fetch(url, {
+      method: 'get',
+      headers: { Authorization: 'Token ' + token },
+      muteHttpExceptions: true,
+    });
+    lastCode = response.getResponseCode();
+    lastBody = response.getContentText();
+    if (lastCode === 200) return response;
+    if (!isTransientKoboStatus_(lastCode) || attempt === KOBO_MAX_RETRIES) break;
+    const waitMs = KOBO_RETRY_BASE_MS * Math.pow(2, attempt - 1);
+    Logger.log(
+      'Transient HTTP ' + lastCode + ' for ' + assetUid +
+      ' (attempt ' + attempt + '/' + KOBO_MAX_RETRIES + '); retrying in ' + waitMs + 'ms'
+    );
+    Utilities.sleep(waitMs);
+  }
+  throw new Error(
+    'Kobo API returned HTTP ' + lastCode + ' for ' + assetUid +
+    ' after ' + KOBO_MAX_RETRIES + ' attempt(s): ' + lastBody
+  );
+}
+
 function fetchAllSubmissions(assetUid, token) {
   let allResults = [];
   let start = 0;
@@ -488,20 +526,12 @@ function fetchAllSubmissions(assetUid, token) {
   do {
     const url = KOBO_BASE_URL + '/api/v2/assets/' + assetUid + '/data.json'
       + '?limit=' + PAGE_SIZE + '&start=' + start;
-    const response = UrlFetchApp.fetch(url, {
-      method: 'get',
-      headers: { Authorization: 'Token ' + token },
-      muteHttpExceptions: true,
-    });
-    const code = response.getResponseCode();
-    if (code !== 200) {
-      throw new Error('Kobo API returned HTTP ' + code + ' for ' + assetUid + ': ' + response.getContentText());
-    }
+    const response = fetchKoboPage_(url, token, assetUid);
     const json = JSON.parse(response.getContentText());
     total = json.count;
-    allResults = allResults.concat(json.results);
+    allResults = allResults.concat(json.results || []);
     start += PAGE_SIZE;
-    Utilities.sleep(200);
+    if (start < total) Utilities.sleep(KOBO_PAGE_PAUSE_MS);
   } while (start < total);
   return allResults;
 }
