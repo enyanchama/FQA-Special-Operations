@@ -107,6 +107,26 @@ const NBU_OPEN_MAP = {
   3: '24 hours per day',
 };
 
+/**
+ * select_multiple: records/patient_files
+ * Output columns: patient_files_<choice_slug> = Yes / No / '' (blank if skipped)
+ */
+const PATIENT_FILES_CHOICES = [
+  { code: '1', slug: 'observation_charts' },
+  { code: '2', slug: 'treatment_sheet' },
+  { code: '3', slug: 'weight_chart' },
+  { code: '4', slug: 'medication_chart' },
+  { code: '5', slug: 'ballard_scoring_sheet' },
+  { code: '6', slug: 'input_output_monitoring_chart' },
+  { code: '7', slug: 'vital_signs_chart' },
+  { code: '8', slug: 'care_plans' },
+  { code: '9', slug: 'discharge_summary' },
+  { code: '10', slug: 'consent_form' },
+  { code: '11', slug: 'pre_medication_notes' },
+  { code: '12', slug: 'continuation_sheet' },
+  { code: '13', slug: 'none' },
+];
+
 const FACILITY_MAP_FROM_2026 = {
   1: 'Kitutu Chache North Sub County Referral Hospital',
   2: 'Entanda Health Centre',
@@ -445,6 +465,7 @@ function transformNewbornUnitRecord_(rec) {
     'resource/employed_cos': true, 'resource/contract_cos': true, 'resource/adeq_cos': true,
     'records/death_reg': true, 'records/consistent_use': true, 'records/integrated_rh_mch': true,
     'records/inpatient_neonatal_reg': true, 'records/nb_admission': true,
+    'records/patient_files': true,
     'records/perinatal_notification': true, 'records/perinatal_review': true,
     'privacy/visual_privacy': true, 'privacy/auditory_privacy': true,
     'train/newborn': true, 'train/nnr': true, 'train/breastfeeding': true,
@@ -570,6 +591,7 @@ function transformNewbornUnitRecord_(rec) {
   out.summary_register = lookupCoded_(rec['records/integrated_rh_mch'], YES_NO_MAP);
   out.neonatal_register = lookupCoded_(rec['records/inpatient_neonatal_reg'], YES_NO_MAP);
   out.newborn_admission = lookupCoded_(rec['records/nb_admission'], NEWBORN_ADMISSION_AVAIL_MAP);
+  expandSelectMultiple_(out, rec['records/patient_files'], 'patient_files', PATIENT_FILES_CHOICES);
   out.perinatal_notification = lookupCoded_(rec['records/perinatal_notification'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.perinatal_review = lookupCoded_(rec['records/perinatal_review'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.visual_privacy = lookupCoded_(rec['privacy/visual_privacy'], ROOM_PRIVACY_MAP);
@@ -735,6 +757,33 @@ function formatYearMonth_(raw) {
   return s;
 }
 
+
+/**
+ * Expand a Kobo select_multiple into Yes/No/blank indicator columns.
+ * Column naming: <prefix>_<choice_slug>
+ * - Yes if choice code is in the space-separated value
+ * - No if the question was answered but choice not selected
+ * - blank if the question was skipped / irrelevant (field absent)
+ */
+function expandSelectMultiple_(out, raw, prefix, choices) {
+  const irrelevant = raw === undefined || raw === null;
+  let selectedSet = null;
+  if (!irrelevant) {
+    selectedSet = {};
+    String(raw).split(/\s+/).filter(Boolean).forEach(function (code) {
+      selectedSet[String(code)] = true;
+    });
+  }
+  choices.forEach(function (choice) {
+    const col = prefix + '_' + choice.slug;
+    if (irrelevant) {
+      out[col] = '';
+    } else {
+      out[col] = selectedSet[String(choice.code)] ? 'Yes' : 'No';
+    }
+  });
+}
+
 function lookupCoded_(raw, map) {
   if (raw === undefined || raw === null || raw === '') return '';
   const keyNum = Number(raw);
@@ -779,6 +828,13 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'employed_co', 'contract_co', 'adequate_co',
       'death_register', 'deathreg_consistent_use', 'summary_register',
       'neonatal_register', 'newborn_admission',
+      'patient_files_observation_charts', 'patient_files_treatment_sheet',
+      'patient_files_weight_chart', 'patient_files_medication_chart',
+      'patient_files_ballard_scoring_sheet', 'patient_files_input_output_monitoring_chart',
+      'patient_files_vital_signs_chart', 'patient_files_care_plans',
+      'patient_files_discharge_summary', 'patient_files_consent_form',
+      'patient_files_pre_medication_notes', 'patient_files_continuation_sheet',
+      'patient_files_none',
       'perinatal_notification', 'perinatal_review',
       'visual_privacy', 'auditory_privacy',
       'newborn_training', 'nnr_training', 'breastfeeding_training',
