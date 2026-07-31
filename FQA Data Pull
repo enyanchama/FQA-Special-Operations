@@ -88,6 +88,16 @@ const ROOM_PRIVACY_MAP = {
   2: 'Some rooms',
   3: 'No rooms',
 };
+const BED_SPACING_MAP = {
+  1: 'All beds are appropriately spaced',
+  2: 'Some beds are appropriately spaced',
+  3: 'No beds are appropriately spaced',
+};
+const VISUAL_BARRIER_MAP = {
+  1: 'Visual barriers in place for ALL exam spaces',
+  2: 'Visual barriers in place for SOME exam spaces',
+  3: 'Visual barriers in place for NO exam spaces',
+};
 const SOP_PROTOCOL_MAP = {
   1: 'They have displayed, up to date protocols',
   2: 'They have written up to date protocols, not displayed',
@@ -630,6 +640,15 @@ function transformInpatientMaternityRecord_(rec) {
     'health_records/newborn': true,
     'services_offered/immunization': true,
     'health_records/patient_file': true,
+    'health_records/maternal_death': true, 'health_records/perinatal_death': true,
+    'health_records/maternal_review': true, 'health_records/perinatl_review': true,
+    'health_records/autopsy_forms': true,
+    'Section_5_Privacy_confidentiality/visual': true,
+    'Section_5_Privacy_confidentiality/auditory': true,
+    'Section_5_Privacy_confidentiality/files': true,
+    'Section_5_Privacy_confidentiality/single_rooms': true,
+    'Section_5_Privacy_confidentiality/beds': true,
+    'Section_5_Privacy_confidentiality/barrier': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -740,6 +759,39 @@ function transformInpatientMaternityRecord_(rec) {
     rec['health_records/patient_file'],
     'health_records_patient_file',
     MATERNITY_PATIENT_FILE_CHOICES
+  );
+  out.maternal_death_forms = lookupCoded_(
+    rec['health_records/maternal_death'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.perinatal_death_forms = lookupCoded_(
+    rec['health_records/perinatal_death'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.maternal_review_forms = lookupCoded_(
+    rec['health_records/maternal_review'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.perinatal_review_form = lookupCoded_(
+    rec['health_records/perinatl_review'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.autopsy_forms = lookupCoded_(
+    rec['health_records/autopsy_forms'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.visual_privacy = lookupCoded_(
+    rec['Section_5_Privacy_confidentiality/visual'], ROOM_PRIVACY_MAP
+  );
+  out.auditory_privacy = lookupCoded_(
+    rec['Section_5_Privacy_confidentiality/auditory'], ROOM_PRIVACY_MAP
+  );
+  out.files_locked = lookupCoded_(
+    rec['Section_5_Privacy_confidentiality/files'], YES_NO_MAP
+  );
+  out.birth_labour_rooms = lookupCoded_(
+    rec['Section_5_Privacy_confidentiality/single_rooms'], YES_NO_MAP
+  );
+  out.bed_space = lookupCoded_(
+    rec['Section_5_Privacy_confidentiality/beds'], BED_SPACING_MAP
+  );
+  out.protect_barrier = lookupCoded_(
+    rec['Section_5_Privacy_confidentiality/barrier'], VISUAL_BARRIER_MAP
   );
 
   return out;
@@ -1160,6 +1212,10 @@ function inpatientMaternityPreferredHeaders_() {
     'health_records_patient_file_theatre_notes',
     'health_records_patient_file_consultation_progress_notes',
     'health_records_patient_file_none',
+    'maternal_death_forms', 'perinatal_death_forms', 'maternal_review_forms',
+    'perinatal_review_form', 'autopsy_forms',
+    'visual_privacy', 'auditory_privacy', 'files_locked', 'birth_labour_rooms',
+    'bed_space', 'protect_barrier',
   ];
 }
 
