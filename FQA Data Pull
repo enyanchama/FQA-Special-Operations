@@ -447,7 +447,7 @@ function pullAllForms() {
     try {
       Logger.log('Pulling form: ' + form.uid + ' → "' + form.sheetName + '"');
       let records = fetchAllSubmissions(form.uid, token);
-      if (form.sheetName === 'Newborn Unit') records = records.map(transformNewbornUnitRecord_);
+      records = transformRecordsForSheet_(form.sheetName, records);
       const result = appendNewRecordsToSheet(ss, form.sheetName, records);
       Logger.log('Sheet "' + form.sheetName + '": appended ' + result.appended +
         ' new row(s); skipped ' + result.skipped + ' existing uuid(s).');
@@ -467,7 +467,7 @@ function fullRefreshAllForms() {
       const sheet = ss.getSheetByName(form.sheetName);
       if (sheet) sheet.clearContents();
       let records = fetchAllSubmissions(form.uid, token);
-      if (form.sheetName === 'Newborn Unit') records = records.map(transformNewbornUnitRecord_);
+      records = transformRecordsForSheet_(form.sheetName, records);
       const result = appendNewRecordsToSheet(ss, form.sheetName, records);
       Logger.log('Sheet "' + form.sheetName + '": wrote ' + result.appended + ' row(s).');
     } catch (err) {
@@ -536,6 +536,47 @@ function fetchAllSubmissions(assetUid, token) {
   return allResults;
 }
 
+function transformRecordsForSheet_(sheetName, records) {
+  if (sheetName === 'Newborn Unit') return records.map(transformNewbornUnitRecord_);
+  if (sheetName === 'Inpatient Maternity') return records.map(transformInpatientMaternityRecord_);
+  return records;
+}
+
+/** Decode the shared facility_profile block onto out. */
+function assignFacilityProfile_(out, rec, dateSubmitted, facilityKey) {
+  out.county = lookupCoded_(rec['facility_profile/county'], COUNTY_MAP);
+  const facilityMap = isOnOrAfterCutoff_(dateSubmitted, FACILITY_MAP_CUTOFF)
+    ? FACILITY_MAP_FROM_2026 : FACILITY_MAP_BEFORE_2026;
+  out.facility = lookupCoded_(rec['facility_profile/facility'], facilityMap);
+  out.facility_level = lookupCoded_(rec[facilityKey], FACILITY_LEVEL_MAP);
+  out.contact_person = lookupCoded_(rec['facility_profile/contact'], CONTACT_PERSON_MAP);
+  out.name_contact = rec['facility_profile/nam_contact'] == null ? '' : rec['facility_profile/nam_contact'];
+  out.phone_number = rec['facility_profile/phone_contact'] == null ? '' : rec['facility_profile/phone_contact'];
+}
+
+function transformInpatientMaternityRecord_(rec) {
+  const out = {};
+  const rawKeysToDrop = {
+    start: true, end: true, starttime: true, endtime: true, today: true,
+    'facility_profile/county': true, 'facility_profile/facility': true,
+    'facility_profile/gaz_facility': true, 'facility_profile/contact': true,
+    'facility_profile/nam_contact': true, 'facility_profile/phone_contact': true,
+  };
+
+  Object.keys(rec).forEach(function (key) {
+    if (!rawKeysToDrop[key]) out[key] = rec[key];
+  });
+
+  const dateSubmitted = formatDateMinute_(rec['_submission_time']);
+  out.date_started = formatDateMinute_(firstValue_(rec, ['start', 'starttime']));
+  out.date_ended = formatDateMinute_(firstValue_(rec, ['end', 'endtime']));
+  out.date_submitted = dateSubmitted;
+
+  assignFacilityProfile_(out, rec, dateSubmitted, 'facility_profile/gaz_facility');
+
+  return out;
+}
+
 function transformNewbornUnitRecord_(rec) {
   // Whitelist-only: keep _uuid + transformed columns. Drop all other Kobo
   // metadata / unmapped raw fields (_id, _attachments, formhub/*, meta/*, etc.).
@@ -549,15 +590,8 @@ function transformNewbornUnitRecord_(rec) {
   out.date_started = dateStarted;
   out.date_ended = dateEnded;
   out.date_submitted = dateSubmitted;
-  out.county = lookupCoded_(rec['facility_profile/county'], COUNTY_MAP);
 
-  const facilityMap = isOnOrAfterCutoff_(dateSubmitted, FACILITY_MAP_CUTOFF)
-    ? FACILITY_MAP_FROM_2026 : FACILITY_MAP_BEFORE_2026;
-  out.facility = lookupCoded_(rec['facility_profile/facility'], facilityMap);
-  out.facility_level = lookupCoded_(rec['facility_profile/gazetted_facility'], FACILITY_LEVEL_MAP);
-  out.contact_person = lookupCoded_(rec['facility_profile/contact'], CONTACT_PERSON_MAP);
-  out.name_contact = rec['facility_profile/nam_contact'] == null ? '' : rec['facility_profile/nam_contact'];
-  out.phone_number = rec['facility_profile/phone_contact'] == null ? '' : rec['facility_profile/phone_contact'];
+  assignFacilityProfile_(out, rec, dateSubmitted, 'facility_profile/gazetted_facility');
 
   out.functional_nbu = lookupCoded_(rec['facility_profile/unit'], YES_NO_MAP);
   out.newborn_admissions = toIntegerOrBlank_(rec['service/needs']);
@@ -922,6 +956,20 @@ function newbornUnitPreferredHeaders_() {
   ];
 }
 
+function inpatientMaternityPreferredHeaders_() {
+  return [
+    UUID_FIELD, 'date_started', 'date_ended', 'date_submitted',
+    'county', 'facility', 'facility_level', 'contact_person', 'name_contact',
+    'phone_number',
+  ];
+}
+
+function preferredHeadersForSheet_(sheetName) {
+  if (sheetName === 'Newborn Unit') return newbornUnitPreferredHeaders_();
+  if (sheetName === 'Inpatient Maternity') return inpatientMaternityPreferredHeaders_();
+  return [];
+}
+
 function appendNewRecordsToSheet(ss, sheetName, records) {
   let sheet = ss.getSheetByName(sheetName);
   if (!sheet) sheet = ss.insertSheet(sheetName);
@@ -941,7 +989,7 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
   if (isEmptyOrPlaceholder) {
     sheet.clearContents();
     const headers = ensureUuidFirst_(buildHeaderUnion_(records));
-    const preferred = newbornUnitPreferredHeaders_();
+    const preferred = preferredHeadersForSheet_(sheetName);
     // Newborn Unit: exact preferred columns only (no leftover meta).
     // Other sheets: preferred order when present, then remaining keys.
     const ordered = sheetName === 'Newborn Unit'
