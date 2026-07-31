@@ -171,6 +171,12 @@ const OXY_SOURCE_CHOICES = [
   { code: '6', slug: 'none' },
 ];
 
+const CANNULAE_CHOICES = [
+  { code: '1', slug: 'size_24' },
+  { code: '2', slug: 'size_26' },
+  { code: '3', slug: 'none' },
+];
+
 const SIZE_4_6_8_CHOICES = [
   { code: '1', slug: 'size_4' },
   { code: '2', slug: 'size_6' },
@@ -589,10 +595,17 @@ function transformNewbornUnitRecord_(rec) {
   out.hiv_neonate_training = formatYearMonth_(rec['train/neonate_hiv']);
   out.kangaroo_training = formatYearMonth_(rec['train/kangaroo']);
   out.standard_infection_control = formatYearMonth_(rec['train/sic']);
+  out.training_hypogycemia = formatYearMonth_(rec['train/hypoglycemia']);
+  out.training_preterm = formatYearMonth_(rec['train/preterm_care']);
+  out.training_newborn_jaundice = formatYearMonth_(rec['train/newborn_jaundice']);
 
   out.sepsis_sop = lookupCoded_(rec['sop/sepsis'], SOP_PROTOCOL_MAP);
   out.jaundice_sop = lookupCoded_(rec['sop/jaundice'], SOP_PROTOCOL_MAP);
-  out.hypoglycemia_sop = lookupCoded_(rec['sop/hypoglycemia'], SOP_PROTOCOL_MAP);
+  out.hypoglycemia_sop = lookupCoded_(firstValue_(rec, [
+    'sop/hypoglycemia_sop',
+    'sop/hypoglycemia_001',
+    'sop/hypoglycemia',
+  ]), SOP_PROTOCOL_MAP);
   out.neonatal_resuscitation_sop = lookupCoded_(rec['sop/neo_resus'], SOP_PROTOCOL_MAP);
   out.kmc_sop = lookupCoded_(rec['sop/kmc'], SOP_PROTOCOL_MAP);
   out.handwash_sop = lookupCoded_(rec['sop/handwash'], SOP_PROTOCOL_MAP);
@@ -614,6 +627,7 @@ function transformNewbornUnitRecord_(rec) {
   out.linen = lookupCoded_(rec['sanitation/linen'], YES_NO_MAP);
   out.sharp_container = lookupCoded_(rec['sanitation/sharp'], YES_NO_MAP);
   out.sharp3_4full = lookupCoded_(rec['sanitation/sharp3_4'], YES_NO_MAP);
+  out.sharp_full = lookupCoded_(rec['sanitation/sharp_full'], YES_NO_MAP);
   out.latrine = lookupCoded_(rec['sanitation/latrine'], YES_NO_MAP);
   out.latrine_clients = lookupCoded_(rec['sanitation/lat_client'], YES_NO_MAP);
   out.handwashing_station = lookupCoded_(rec['sanitation/station'], YES_NO_MAP);
@@ -669,6 +683,7 @@ function transformNewbornUnitRecord_(rec) {
   out.weighing_scale = lookupCoded_(rec['equip/scale'], EQUIP_FUNCTIONAL_MAP);
   expandSelectMultiple_(out, rec['equip/resus_equip'], 'equip_resus_equip', RESUS_EQUIP_CHOICES);
   expandSelectMultiple_(out, rec['equip/oxy_source'], 'equip_oxy_source', OXY_SOURCE_CHOICES);
+  expandSelectMultiple_(out, rec['equip/cannulae'], 'equip_cannulae', CANNULAE_CHOICES);
   out.tetraycline = lookupCoded_(rec['commodities/tetraycline'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.chlorhexidine = lookupCoded_(rec['commodities/chlorhexidine'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.iv_fluid = lookupCoded_(rec['commodities/iv_fluid'], NEWBORN_ADMISSION_AVAIL_MAP);
@@ -812,7 +827,8 @@ function newbornUnitPreferredHeaders_() {
     'visual_privacy', 'auditory_privacy',
     'newborn_training', 'nnr_training', 'breastfeeding_training',
     'infections_training', 'comprehensive_training', 'hiv_neonate_training',
-    'kangaroo_training', 'standard_infection_control',
+    'kangaroo_training', 'standard_infection_control', 'training_hypogycemia',
+    'training_preterm', 'training_newborn_jaundice',
     'sepsis_sop', 'jaundice_sop', 'hypoglycemia_sop', 'neonatal_resuscitation_sop',
     'kmc_sop', 'handwash_sop', 'referral_sop',
     'sop_policy_incubator_temperature_setting', 'sop_policy_gestational_age_assessment',
@@ -831,7 +847,7 @@ function newbornUnitPreferredHeaders_() {
     'separate_sink', 'hand_hygiene', 'waste_management', 'waste_segregation',
     'cleaning_register', 'decontamination_area', 'decontamination_checklist',
     'utensil_cleaning_area', 'laundry', 'linen', 'sharp_container',
-    'sharp3_4full', 'latrine', 'latrine_clients', 'handwashing_station',
+    'sharp3_4full', 'sharp_full', 'latrine', 'latrine_clients', 'handwashing_station',
     'disinfect_washrooms', 'clean_washroom', 'access_disability',
     'menstrual_hygiene', 'maintenance_infrastructure', 'well_lit', 'ventilation',
     'procedure_rooms', 'changing_area', 'kitchionette', 'fire_extinguishers',
@@ -854,6 +870,7 @@ function newbornUnitPreferredHeaders_() {
     'equip_oxy_source_nasal_prongs_different_sizes',
     'equip_oxy_source_nasal_prongs_for_continuous_positive_airway_pressure_cpap',
     'equip_oxy_source_none',
+    'equip_cannulae_size_24', 'equip_cannulae_size_26', 'equip_cannulae_none',
     'tetraycline', 'chlorhexidine', 'iv_fluid', 'vitk', 'latex', 'sterile',
     'soluset', 'infant_formula', 'feeding_cups', 'syringe_sizes',
     'needles_sizes', 'microdrippers', 'iv_sets',
