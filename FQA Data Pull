@@ -77,6 +77,12 @@ const NEWBORN_ADMISSION_AVAIL_MAP = {
   2: 'Sometimes available',
   3: 'Never available',
 };
+const MATERNITY_FILE_AVAILABILITY_MAP = {
+  1: 'Always available',
+  2: 'Sometimes available',
+  3: 'Never available',
+  4: 'Have not needed this form in the past 3 months',
+};
 const ROOM_PRIVACY_MAP = {
   1: 'All rooms',
   2: 'Some rooms',
@@ -596,6 +602,10 @@ function transformInpatientMaternityRecord_(rec) {
     'health_records/death': true, 'health_records/dregister': true,
     'health_records/birth_death': true, 'health_records/delivery': true,
     'health_records/dl_register': true, 'health_records/postnatal': true,
+    'health_records/pregister': true, 'health_records/nutrition': true,
+    'health_records/newborn_register': true, 'health_records/nregister': true,
+    'health_records/kmc': true, 'health_records/imf': true,
+    'health_records/newborn': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -679,6 +689,21 @@ function transformInpatientMaternityRecord_(rec) {
   out.delivery_reg_used = lookupCoded_(rec['health_records/dl_register'], YES_NO_MAP);
   out.postnatal_register = lookupCoded_(
     rec['health_records/postnatal'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.postnatal_reg_used = lookupCoded_(rec['health_records/pregister'], YES_NO_MAP);
+  out.nutrition_register = lookupCoded_(
+    rec['health_records/nutrition'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.newborn_register = lookupCoded_(
+    rec['health_records/newborn_register'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.newborn_register_used = lookupCoded_(rec['health_records/nregister'], YES_NO_MAP);
+  out.kmc_register = lookupCoded_(rec['health_records/kmc'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.inpatient_maternity_file = lookupCoded_(
+    rec['health_records/imf'], MATERNITY_FILE_AVAILABILITY_MAP
+  );
+  out.newborn_file = lookupCoded_(
+    rec['health_records/newborn'], MATERNITY_FILE_AVAILABILITY_MAP
   );
 
   return out;
@@ -1082,7 +1107,9 @@ function inpatientMaternityPreferredHeaders_() {
     'offered_glucose', 'access_rehab',
     'birth_register', 'birth_register_available', 'death_register',
     'death_register_available', 'birth_death_nvrs', 'delivery_register',
-    'delivery_reg_used', 'postnatal_register',
+    'delivery_reg_used', 'postnatal_register', 'postnatal_reg_used',
+    'nutrition_register', 'newborn_register', 'newborn_register_used',
+    'kmc_register', 'inpatient_maternity_file', 'newborn_file',
   ];
 }
 
