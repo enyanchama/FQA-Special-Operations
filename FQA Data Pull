@@ -588,6 +588,14 @@ function transformInpatientMaternityRecord_(rec) {
     'services_offered/urine_protein': true, 'services_offered/urine_glucose': true,
     'services_offered/hiv_rapid': true, 'services_offered/dbs': true,
     'services_offered/rpr_vdrl': true, 'services_offered/blood_group': true,
+    'services_offered/malaria': true, 'services_offered/bs_malaria': true,
+    'services_offered/hep_b': true, 'services_offered/tb_testing': true,
+    'services_offered/glucose': true,
+    'hrh/rehab': true,
+    'health_records/birth': true, 'health_records/bregister': true,
+    'health_records/death': true, 'health_records/dregister': true,
+    'health_records/birth_death': true, 'health_records/delivery': true,
+    'health_records/dl_register': true, 'health_records/postnatal': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -647,6 +655,30 @@ function transformInpatientMaternityRecord_(rec) {
   );
   out.offered_blood_group = lookupCoded_(
     rec['services_offered/blood_group'], MATERNITY_LAB_AVAILABILITY_MAP
+  );
+  out.offered_malaria = lookupCoded_(firstValue_(rec, [
+    'services_offered/malaria',
+    'services_offered/bs_malaria',
+  ]), MATERNITY_LAB_AVAILABILITY_MAP);
+  out.offered_hep_b = lookupCoded_(rec['services_offered/hep_b'], MATERNITY_LAB_AVAILABILITY_MAP);
+  out.offer_tb_test = lookupCoded_(
+    rec['services_offered/tb_testing'], MATERNITY_LAB_AVAILABILITY_MAP
+  );
+  out.offered_glucose = lookupCoded_(
+    rec['services_offered/glucose'], MATERNITY_LAB_AVAILABILITY_MAP
+  );
+  out.access_rehab = lookupCoded_(rec['hrh/rehab'], YES_NO_MAP);
+  out.birth_register = lookupCoded_(rec['health_records/birth'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.birth_register_available = lookupCoded_(rec['health_records/bregister'], YES_NO_MAP);
+  out.death_register = lookupCoded_(rec['health_records/death'], NEWBORN_ADMISSION_AVAIL_MAP);
+  out.death_register_available = lookupCoded_(rec['health_records/dregister'], YES_NO_MAP);
+  out.birth_death_nvrs = lookupCoded_(rec['health_records/birth_death'], YES_NO_MAP);
+  out.delivery_register = lookupCoded_(
+    rec['health_records/delivery'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.delivery_reg_used = lookupCoded_(rec['health_records/dl_register'], YES_NO_MAP);
+  out.postnatal_register = lookupCoded_(
+    rec['health_records/postnatal'], NEWBORN_ADMISSION_AVAIL_MAP
   );
 
   return out;
@@ -1046,7 +1078,11 @@ function inpatientMaternityPreferredHeaders_() {
     'offer_microscopy', 'offer_hgb', 'services_offered_urinalysis',
     'offered_urine_rapid', 'offered_urine_protein', 'offered_urine_glucose',
     'services_offered/hiv_rapid', 'offered_dbs', 'offered_rpr_vdrl',
-    'offered_blood_group',
+    'offered_blood_group', 'offered_malaria', 'offered_hep_b', 'offer_tb_test',
+    'offered_glucose', 'access_rehab',
+    'birth_register', 'birth_register_available', 'death_register',
+    'death_register_available', 'birth_death_nvrs', 'delivery_register',
+    'delivery_reg_used', 'postnatal_register',
   ];
 }
 
