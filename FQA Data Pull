@@ -594,7 +594,7 @@ function transformInpatientMaternityRecord_(rec) {
   out.foetal_viability = lookupCoded_(rec['services_offered/foetal_viability'], YES_NO_MAP);
   out.no_foetuses_us = lookupCoded_(rec['services_offered/no_foetuses'], YES_NO_MAP);
   out.gestational_age_us = lookupCoded_(rec['services_offered/gestation'], YES_NO_MAP);
-  out.featal_anomalies_us = lookupCoded_(rec['services_offered/anomalies'], YES_NO_MAP);
+  out.foetal_anomalies = lookupCoded_(rec['services_offered/anomalies'], YES_NO_MAP);
   out.placenta_insufficiency_us = lookupCoded_(rec['services_offered/placenta_det'], YES_NO_MAP);
   out.offer_ctg = lookupCoded_(rec['services_offered/ctg'], YES_NO_MAP);
   out.services_offered_uterotonis = lookupCoded_(rec['services_offered/uterotonis'], YES_NO_MAP);
@@ -991,7 +991,7 @@ function inpatientMaternityPreferredHeaders_() {
     'county', 'facility', 'facility_level', 'contact_person', 'name_contact',
     'phone_number', 'inpatient_unit',
     'services_offered_pocus', 'services_offered_ultrasound', 'services_offered_xray',
-    'foetal_viability', 'no_foetuses_us', 'gestational_age_us', 'featal_anomalies_us',
+    'foetal_viability', 'no_foetuses_us', 'gestational_age_us', 'foetal_anomalies',
     'placenta_insufficiency_us', 'offer_ctg',
     'services_offered_uterotonis', 'uterotonics_frequency',
     'services_offered_antibiotics', 'antibiotics_frequency', 'offer_anticonvulsant',
