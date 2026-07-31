@@ -6,7 +6,7 @@
  * Set Script Property KOBO_API_TOKEN under Project Settings → Script properties.
  */
 
-const KOBO_BASE_URL = 'https://kobo.humanitarianresponse.info';
+const KOBO_BASE_URL = 'https://eu.kobotoolbox.org';
 const UUID_FIELD = '_uuid';
 /** Smaller pages reduce 502/503 gateway timeouts on large assets. */
 const PAGE_SIZE = 300;
@@ -15,6 +15,11 @@ const KOBO_RETRY_BASE_MS = 2000;
 const KOBO_PAGE_PAUSE_MS = 500;
 const KOBO_FORM_PAUSE_MS = 1500;
 const FACILITY_MAP_CUTOFF = '2026-01-01';
+/** Sheets that write preferred columns only (no raw Kobo meta pass-through). */
+const WHITELIST_SHEETS = {
+  'Newborn Unit': true,
+  'Inpatient Maternity': true,
+};
 
 const FORM_CONFIG = [
   { uid: 'aQb68NgWt27XdYZcLjBeEg', sheetName: 'Newborn Unit' },
@@ -512,14 +517,15 @@ function fullRefreshAllForms() {
   FORM_CONFIG.forEach(function (form, index) {
     try {
       Logger.log('Full refresh for form: ' + form.uid + ' → "' + form.sheetName + '"');
-      const sheet = ss.getSheetByName(form.sheetName);
-      if (sheet) sheet.clearContents();
+      // Fetch + transform before clearing so a failure cannot wipe the sheet.
       let records = fetchAllSubmissions(form.uid, token);
       records = transformRecordsForSheet_(form.sheetName, records);
+      const sheet = ss.getSheetByName(form.sheetName);
+      if (sheet) sheet.clearContents();
       const result = appendNewRecordsToSheet(ss, form.sheetName, records);
       Logger.log('Sheet "' + form.sheetName + '": wrote ' + result.appended + ' row(s).');
     } catch (err) {
-      Logger.log('ERROR refreshing ' + form.uid + ': ' + err.message);
+      Logger.log('ERROR refreshing ' + form.uid + ': ' + err.message + (err.stack ? '\n' + err.stack : ''));
     }
     if (index < FORM_CONFIG.length - 1) Utilities.sleep(KOBO_FORM_PAUSE_MS);
   });
@@ -603,57 +609,11 @@ function assignFacilityProfile_(out, rec, dateSubmitted, facilityKey) {
 }
 
 function transformInpatientMaternityRecord_(rec) {
+  // Whitelist-only: keep _uuid + transformed columns. Drop raw Kobo meta
+  // (_attachments, _geolocation, unmapped fields, etc.) so the sheet write
+  // stays narrow enough for Apps Script setValues.
   const out = {};
-  const rawKeysToDrop = {
-    start: true, end: true, starttime: true, endtime: true, today: true,
-    'facility_profile/county': true, 'facility_profile/facility': true,
-    'facility_profile/gaz_facility': true, 'facility_profile/contact': true,
-    'facility_profile/nam_contact': true, 'facility_profile/phone_contact': true,
-    'facility_profile/units': true,
-    'services_offered/pocus': true, 'services_offered/ultrasound': true,
-    'services_offered/xray': true, 'services_offered/foetal_viability': true,
-    'services_offered/no_foetuses': true, 'services_offered/gestation': true,
-    'services_offered/anomalies': true, 'services_offered/placenta_det': true,
-    'services_offered/ctg': true, 'services_offered/uterotonis': true,
-    'services_offered/uterotinics_freq': true, 'services_offered/antibiotics': true,
-    'services_offered/antibiotics_001': true, 'services_offered/anticonvulsant': true,
-    'services_offered/retained': true, 'services_offered/placenta': true,
-    'services_offered/avd': true, 'services_offered/resuscitation': true,
-    'services_offered/perineal_care': true, 'services_offered/ppfp': true,
-    'services_offered/breastfeeding': true, 'services_offered/newborn_care': true,
-    'services_offered/microscopy': true, 'services_offered/hgb': true,
-    'services_offered/urinalysis': true, 'services_offered/urine_rapid': true,
-    'services_offered/urine_protein': true, 'services_offered/urine_glucose': true,
-    'services_offered/hiv_rapid': true, 'services_offered/dbs': true,
-    'services_offered/rpr_vdrl': true, 'services_offered/blood_group': true,
-    'services_offered/malaria': true, 'services_offered/bs_malaria': true,
-    'services_offered/hep_b': true, 'services_offered/tb_testing': true,
-    'services_offered/glucose': true,
-    'hrh/rehab': true,
-    'health_records/birth': true, 'health_records/bregister': true,
-    'health_records/death': true, 'health_records/dregister': true,
-    'health_records/birth_death': true, 'health_records/delivery': true,
-    'health_records/dl_register': true, 'health_records/postnatal': true,
-    'health_records/pregister': true, 'health_records/nutrition': true,
-    'health_records/newborn_register': true, 'health_records/nregister': true,
-    'health_records/kmc': true, 'health_records/imf': true,
-    'health_records/newborn': true,
-    'services_offered/immunization': true,
-    'health_records/patient_file': true,
-    'health_records/maternal_death': true, 'health_records/perinatal_death': true,
-    'health_records/maternal_review': true, 'health_records/perinatl_review': true,
-    'health_records/autopsy_forms': true,
-    'Section_5_Privacy_confidentiality/visual': true,
-    'Section_5_Privacy_confidentiality/auditory': true,
-    'Section_5_Privacy_confidentiality/files': true,
-    'Section_5_Privacy_confidentiality/single_rooms': true,
-    'Section_5_Privacy_confidentiality/beds': true,
-    'Section_5_Privacy_confidentiality/barrier': true,
-  };
-
-  Object.keys(rec).forEach(function (key) {
-    if (!rawKeysToDrop[key]) out[key] = rec[key];
-  });
+  out[UUID_FIELD] = rec[UUID_FIELD] == null ? '' : rec[UUID_FIELD];
 
   const dateSubmitted = formatDateMinute_(rec['_submission_time']);
   out.date_started = formatDateMinute_(firstValue_(rec, ['start', 'starttime']));
@@ -1245,9 +1205,9 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
     sheet.clearContents();
     const headers = ensureUuidFirst_(buildHeaderUnion_(records));
     const preferred = preferredHeadersForSheet_(sheetName);
-    // Newborn Unit: exact preferred columns only (no leftover meta).
+    // Whitelist sheets: exact preferred columns only (no leftover meta).
     // Other sheets: preferred order when present, then remaining keys.
-    const ordered = sheetName === 'Newborn Unit'
+    const ordered = WHITELIST_SHEETS[sheetName]
       ? preferred
       : orderHeaders_(headers, preferred);
     writeRows_(sheet, ordered, records, 2, true);
@@ -1276,8 +1236,8 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
   const skipped = records.length - newRecords.length;
   if (newRecords.length === 0) return { appended: 0, skipped: skipped };
 
-  // Newborn Unit stays on its preferred columns; do not append meta/raw keys.
-  if (sheetName !== 'Newborn Unit') {
+  // Whitelist sheets stay on preferred columns; do not append meta/raw keys.
+  if (!WHITELIST_SHEETS[sheetName]) {
     const headerSet = {};
     headers.forEach(function (h) { headerSet[h] = true; });
     buildHeaderUnion_(newRecords).forEach(function (key) {
@@ -1320,11 +1280,19 @@ function flattenCell_(val) {
 
 function writeRows_(sheet, headers, records, startRow, writeHeader) {
   if (writeHeader) sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-  const rows = records.map(function (rec) {
-    return headers.map(function (h) { return flattenCell_(rec[h]); });
-  });
-  if (rows.length > 0) {
-    sheet.getRange(startRow, 1, rows.length, headers.length).setValues(rows);
+  if (!records || records.length === 0) return;
+
+  // Write in chunks to avoid Apps Script setValues payload limits on wide sheets.
+  const CHUNK = 100;
+  let rowOffset = 0;
+  while (rowOffset < records.length) {
+    const slice = records.slice(rowOffset, rowOffset + CHUNK);
+    const rows = slice.map(function (rec) {
+      return headers.map(function (h) { return flattenCell_(rec[h]); });
+    });
+    const destRow = startRow + rowOffset;
+    sheet.getRange(destRow, 1, rows.length, headers.length).setValues(rows);
+    rowOffset += slice.length;
   }
 }
 
