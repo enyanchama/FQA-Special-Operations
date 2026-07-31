@@ -1,5 +1,6 @@
 /**
  * FQA QuIPS Linkage — KoboToolbox → Google Sheets puller
+ * Baseline for continued Inpatient Maternity transforms.
  * Do not commit the API token to git.
  * Run fullRefreshAllForms after paste.
  *
@@ -15,6 +16,7 @@ const KOBO_RETRY_BASE_MS = 2000;
 const KOBO_PAGE_PAUSE_MS = 500;
 const KOBO_FORM_PAUSE_MS = 1500;
 const FACILITY_MAP_CUTOFF = '2026-01-01';
+
 /** Sheets that write preferred columns only (no raw Kobo meta pass-through). */
 const WHITELIST_SHEETS = {
   'Newborn Unit': true,
@@ -92,16 +94,6 @@ const ROOM_PRIVACY_MAP = {
   1: 'All rooms',
   2: 'Some rooms',
   3: 'No rooms',
-};
-const BED_SPACING_MAP = {
-  1: 'All beds are appropriately spaced',
-  2: 'Some beds are appropriately spaced',
-  3: 'No beds are appropriately spaced',
-};
-const VISUAL_BARRIER_MAP = {
-  1: 'Visual barriers in place for ALL exam spaces',
-  2: 'Visual barriers in place for SOME exam spaces',
-  3: 'Visual barriers in place for NO exam spaces',
 };
 const SOP_PROTOCOL_MAP = {
   1: 'They have displayed, up to date protocols',
@@ -227,28 +219,6 @@ const MATERIALS_CHOICES = [
   { code: '4', slug: 'neonatal_danger_signs' },
   { code: '5', slug: 'cord_care' },
   { code: '6', slug: 'none' },
-];
-
-const MATERNITY_IMMUNIZATION_CHOICES = [
-  { code: '1', slug: 'bcg' },
-  { code: '2', slug: 'hep_b' },
-  { code: '3', slug: 'opv' },
-  { code: '4', slug: 'none' },
-];
-
-const MATERNITY_PATIENT_FILE_CHOICES = [
-  { code: '1', slug: 'observation_charts' },
-  { code: '2', slug: 'patient_cardex' },
-  { code: '3', slug: 'fluid_ins_outs_record' },
-  { code: '4', slug: 'partograph' },
-  { code: '5', slug: 'treatment_sheet' },
-  { code: '6', slug: 'care_plans' },
-  { code: '7', slug: 'discharge_summary' },
-  { code: '8', slug: 'consent_form' },
-  { code: '9', slug: 'pre_medication_notes' },
-  { code: '10', slug: 'theatre_notes' },
-  { code: '11', slug: 'consultation_progress_notes' },
-  { code: '12', slug: 'none' },
 ];
 
 const FACILITY_MAP_FROM_2026 = {
@@ -708,51 +678,6 @@ function transformInpatientMaternityRecord_(rec) {
   out.newborn_file = lookupCoded_(
     rec['health_records/newborn'], MATERNITY_FILE_AVAILABILITY_MAP
   );
-  expandSelectMultiple_(
-    out,
-    rec['services_offered/immunization'],
-    'services_offered_immunization',
-    MATERNITY_IMMUNIZATION_CHOICES
-  );
-  expandSelectMultiple_(
-    out,
-    rec['health_records/patient_file'],
-    'health_records_patient_file',
-    MATERNITY_PATIENT_FILE_CHOICES
-  );
-  out.maternal_death_forms = lookupCoded_(
-    rec['health_records/maternal_death'], NEWBORN_ADMISSION_AVAIL_MAP
-  );
-  out.perinatal_death_forms = lookupCoded_(
-    rec['health_records/perinatal_death'], NEWBORN_ADMISSION_AVAIL_MAP
-  );
-  out.maternal_review_forms = lookupCoded_(
-    rec['health_records/maternal_review'], NEWBORN_ADMISSION_AVAIL_MAP
-  );
-  out.perinatal_review_form = lookupCoded_(
-    rec['health_records/perinatl_review'], NEWBORN_ADMISSION_AVAIL_MAP
-  );
-  out.autopsy_forms = lookupCoded_(
-    rec['health_records/autopsy_forms'], NEWBORN_ADMISSION_AVAIL_MAP
-  );
-  out.visual_privacy = lookupCoded_(
-    rec['Section_5_Privacy_confidentiality/visual'], ROOM_PRIVACY_MAP
-  );
-  out.auditory_privacy = lookupCoded_(
-    rec['Section_5_Privacy_confidentiality/auditory'], ROOM_PRIVACY_MAP
-  );
-  out.files_locked = lookupCoded_(
-    rec['Section_5_Privacy_confidentiality/files'], YES_NO_MAP
-  );
-  out.birth_labour_rooms = lookupCoded_(
-    rec['Section_5_Privacy_confidentiality/single_rooms'], YES_NO_MAP
-  );
-  out.bed_space = lookupCoded_(
-    rec['Section_5_Privacy_confidentiality/beds'], BED_SPACING_MAP
-  );
-  out.protect_barrier = lookupCoded_(
-    rec['Section_5_Privacy_confidentiality/barrier'], VISUAL_BARRIER_MAP
-  );
 
   return out;
 }
@@ -1158,24 +1083,6 @@ function inpatientMaternityPreferredHeaders_() {
     'delivery_reg_used', 'postnatal_register', 'postnatal_reg_used',
     'nutrition_register', 'newborn_register', 'newborn_register_used',
     'kmc_register', 'inpatient_maternity_file', 'newborn_file',
-    'services_offered_immunization_bcg', 'services_offered_immunization_hep_b',
-    'services_offered_immunization_opv', 'services_offered_immunization_none',
-    'health_records_patient_file_observation_charts',
-    'health_records_patient_file_patient_cardex',
-    'health_records_patient_file_fluid_ins_outs_record',
-    'health_records_patient_file_partograph',
-    'health_records_patient_file_treatment_sheet',
-    'health_records_patient_file_care_plans',
-    'health_records_patient_file_discharge_summary',
-    'health_records_patient_file_consent_form',
-    'health_records_patient_file_pre_medication_notes',
-    'health_records_patient_file_theatre_notes',
-    'health_records_patient_file_consultation_progress_notes',
-    'health_records_patient_file_none',
-    'maternal_death_forms', 'perinatal_death_forms', 'maternal_review_forms',
-    'perinatal_review_form', 'autopsy_forms',
-    'visual_privacy', 'auditory_privacy', 'files_locked', 'birth_labour_rooms',
-    'bed_space', 'protect_barrier',
   ];
 }
 
