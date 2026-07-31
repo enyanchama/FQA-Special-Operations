@@ -153,6 +153,40 @@ const SOP_POLICY_CHOICES = [
   { code: '19', slug: 'none' },
 ];
 
+const RESUS_EQUIP_CHOICES = [
+  { code: '1', slug: '200ml_ambubag' },
+  { code: '2', slug: '300ml_ambubag' },
+  { code: '3', slug: 'size_0_ambubag_masks' },
+  { code: '4', slug: 'size_1_ambubag_masks' },
+  { code: '5', slug: 'size_2_ambubag_masks' },
+  { code: '6', slug: 'none' },
+];
+
+const OXY_SOURCE_CHOICES = [
+  { code: '1', slug: 'full_oxygen_cylinders_or_central_supply' },
+  { code: '2', slug: 'oxygen_concentrator' },
+  { code: '3', slug: 'oxygen_masks_different_sizes' },
+  { code: '4', slug: 'nasal_prongs_different_sizes' },
+  { code: '5', slug: 'nasal_prongs_for_continuous_positive_airway_pressure_cpap' },
+  { code: '6', slug: 'none' },
+];
+
+const SIZE_4_6_8_CHOICES = [
+  { code: '1', slug: 'size_4' },
+  { code: '2', slug: 'size_6' },
+  { code: '3', slug: 'size_8' },
+  { code: '4', slug: 'none' },
+];
+
+const MATERIALS_CHOICES = [
+  { code: '1', slug: 'kmc' },
+  { code: '2', slug: 'breastfeeding' },
+  { code: '3', slug: 'latching' },
+  { code: '4', slug: 'neonatal_danger_signs' },
+  { code: '5', slug: 'cord_care' },
+  { code: '6', slug: 'none' },
+];
+
 const FACILITY_MAP_FROM_2026 = {
   1: 'Kitutu Chache North Sub County Referral Hospital',
   2: 'Entanda Health Centre',
@@ -528,13 +562,16 @@ function transformNewbornUnitRecord_(rec) {
     'equip/glucometer': true,
     'equip/pump': true, 'equip/bulbs': true, 'equip/therm': true,
     'equip/low_therm': true, 'equip/scale': true,
+    'equip/resus_equip': true, 'equip/oxy_source': true,
     'commodities/tetraycline': true, 'commodities/chlorhexidine': true,
     'commodities/iv_fluid': true, 'commodities/vitk': true,
     'commodities/latex': true, 'commodities/sterile': true,
     'commodities/soluset': true, 'commodities/inf_form': true,
     'commodities/cups': true, 'commodities/syringes': true,
     'commodities/needles': true, 'commodities/microdrippers': true,
-    'commodities/iv_sets': true,
+    'commodities/iv_sets': true, 'commodities/catheters': true,
+    'commodities/materials': true, 'commodities/suction': true,
+    'commodities/tubes': true,
     'adherence/kmc2': true, 'adherence/preterm': true, 'adherence/feeding': true,
     'adherence/breastmilk': true, 'adherence/express': true, 'adherence/plan': true,
     'adherence/neonates': true, 'adherence/discharge': true,
@@ -710,6 +747,8 @@ function transformNewbornUnitRecord_(rec) {
   out.thermometer_nbu = lookupCoded_(rec['equip/therm'], ALWAYS_SOMETIMES_NEVER_MAP);
   out.thermometer_readings = lookupCoded_(rec['equip/low_therm'], YES_NO_MAP);
   out.weighing_scale = lookupCoded_(rec['equip/scale'], EQUIP_FUNCTIONAL_MAP);
+  expandSelectMultiple_(out, rec['equip/resus_equip'], 'equip_resus_equip', RESUS_EQUIP_CHOICES);
+  expandSelectMultiple_(out, rec['equip/oxy_source'], 'equip_oxy_source', OXY_SOURCE_CHOICES);
   out.tetraycline = lookupCoded_(rec['commodities/tetraycline'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.chlorhexidine = lookupCoded_(rec['commodities/chlorhexidine'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.iv_fluid = lookupCoded_(rec['commodities/iv_fluid'], NEWBORN_ADMISSION_AVAIL_MAP);
@@ -723,6 +762,10 @@ function transformNewbornUnitRecord_(rec) {
   out.needles_sizes = lookupCoded_(rec['commodities/needles'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.microdrippers = lookupCoded_(rec['commodities/microdrippers'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.iv_sets = lookupCoded_(rec['commodities/iv_sets'], NEWBORN_ADMISSION_AVAIL_MAP);
+  expandSelectMultiple_(out, rec['commodities/catheters'], 'commodities_catheters', SIZE_4_6_8_CHOICES);
+  expandSelectMultiple_(out, rec['commodities/materials'], 'commodities_materials', MATERIALS_CHOICES);
+  expandSelectMultiple_(out, rec['commodities/suction'], 'commodities_suction', SIZE_4_6_8_CHOICES);
+  expandSelectMultiple_(out, rec['commodities/tubes'], 'commodities_tubes', SIZE_4_6_8_CHOICES);
   out.kmc_initiated = lookupCoded_(rec['adherence/kmc2'], ALWAYS_SOMETIMES_NEVER_MAP);
   out.preterm_lowbirth = lookupCoded_(rec['adherence/preterm'], ALWAYS_SOMETIMES_NEVER_MAP);
   out.feeding_freq = lookupCoded_(rec['adherence/feeding'], ALWAYS_SOMETIMES_NEVER_MAP);
@@ -901,9 +944,26 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
       'stethoscopes_nbu', 'glucometer_nbu',
       'sunction_pump', 'sunction_bulbs', 'thermometer_nbu', 'thermometer_readings',
       'weighing_scale',
+      'equip_resus_equip_200ml_ambubag', 'equip_resus_equip_300ml_ambubag',
+      'equip_resus_equip_size_0_ambubag_masks', 'equip_resus_equip_size_1_ambubag_masks',
+      'equip_resus_equip_size_2_ambubag_masks', 'equip_resus_equip_none',
+      'equip_oxy_source_full_oxygen_cylinders_or_central_supply',
+      'equip_oxy_source_oxygen_concentrator', 'equip_oxy_source_oxygen_masks_different_sizes',
+      'equip_oxy_source_nasal_prongs_different_sizes',
+      'equip_oxy_source_nasal_prongs_for_continuous_positive_airway_pressure_cpap',
+      'equip_oxy_source_none',
       'tetraycline', 'chlorhexidine', 'iv_fluid', 'vitk', 'latex', 'sterile',
       'soluset', 'infant_formula', 'feeding_cups', 'syringe_sizes',
       'needles_sizes', 'microdrippers', 'iv_sets',
+      'commodities_catheters_size_4', 'commodities_catheters_size_6',
+      'commodities_catheters_size_8', 'commodities_catheters_none',
+      'commodities_materials_kmc', 'commodities_materials_breastfeeding',
+      'commodities_materials_latching', 'commodities_materials_neonatal_danger_signs',
+      'commodities_materials_cord_care', 'commodities_materials_none',
+      'commodities_suction_size_4', 'commodities_suction_size_6',
+      'commodities_suction_size_8', 'commodities_suction_none',
+      'commodities_tubes_size_4', 'commodities_tubes_size_6',
+      'commodities_tubes_size_8', 'commodities_tubes_none',
       'kmc_initiated', 'preterm_lowbirth', 'feeding_freq',
       'breastmilk', 'express_milk', 'monitoring_plan', 'neonate_review',
       'discharge', 'discharge_note', 'infact_referral',
