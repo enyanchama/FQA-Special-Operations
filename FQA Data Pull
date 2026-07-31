@@ -214,6 +214,28 @@ const MATERIALS_CHOICES = [
   { code: '6', slug: 'none' },
 ];
 
+const MATERNITY_IMMUNIZATION_CHOICES = [
+  { code: '1', slug: 'bcg' },
+  { code: '2', slug: 'hep_b' },
+  { code: '3', slug: 'opv' },
+  { code: '4', slug: 'none' },
+];
+
+const MATERNITY_PATIENT_FILE_CHOICES = [
+  { code: '1', slug: 'observation_charts' },
+  { code: '2', slug: 'patient_cardex' },
+  { code: '3', slug: 'fluid_ins_outs_record' },
+  { code: '4', slug: 'partograph' },
+  { code: '5', slug: 'treatment_sheet' },
+  { code: '6', slug: 'care_plans' },
+  { code: '7', slug: 'discharge_summary' },
+  { code: '8', slug: 'consent_form' },
+  { code: '9', slug: 'pre_medication_notes' },
+  { code: '10', slug: 'theatre_notes' },
+  { code: '11', slug: 'consultation_progress_notes' },
+  { code: '12', slug: 'none' },
+];
+
 const FACILITY_MAP_FROM_2026 = {
   1: 'Kitutu Chache North Sub County Referral Hospital',
   2: 'Entanda Health Centre',
@@ -606,6 +628,8 @@ function transformInpatientMaternityRecord_(rec) {
     'health_records/newborn_register': true, 'health_records/nregister': true,
     'health_records/kmc': true, 'health_records/imf': true,
     'health_records/newborn': true,
+    'services_offered/immunization': true,
+    'health_records/patient_file': true,
   };
 
   Object.keys(rec).forEach(function (key) {
@@ -704,6 +728,18 @@ function transformInpatientMaternityRecord_(rec) {
   );
   out.newborn_file = lookupCoded_(
     rec['health_records/newborn'], MATERNITY_FILE_AVAILABILITY_MAP
+  );
+  expandSelectMultiple_(
+    out,
+    rec['services_offered/immunization'],
+    'services_offered_immunization',
+    MATERNITY_IMMUNIZATION_CHOICES
+  );
+  expandSelectMultiple_(
+    out,
+    rec['health_records/patient_file'],
+    'health_records_patient_file',
+    MATERNITY_PATIENT_FILE_CHOICES
   );
 
   return out;
@@ -1110,6 +1146,20 @@ function inpatientMaternityPreferredHeaders_() {
     'delivery_reg_used', 'postnatal_register', 'postnatal_reg_used',
     'nutrition_register', 'newborn_register', 'newborn_register_used',
     'kmc_register', 'inpatient_maternity_file', 'newborn_file',
+    'services_offered_immunization_bcg', 'services_offered_immunization_hep_b',
+    'services_offered_immunization_opv', 'services_offered_immunization_none',
+    'health_records_patient_file_observation_charts',
+    'health_records_patient_file_patient_cardex',
+    'health_records_patient_file_fluid_ins_outs_record',
+    'health_records_patient_file_partograph',
+    'health_records_patient_file_treatment_sheet',
+    'health_records_patient_file_care_plans',
+    'health_records_patient_file_discharge_summary',
+    'health_records_patient_file_consent_form',
+    'health_records_patient_file_pre_medication_notes',
+    'health_records_patient_file_theatre_notes',
+    'health_records_patient_file_consultation_progress_notes',
+    'health_records_patient_file_none',
   ];
 }
 
