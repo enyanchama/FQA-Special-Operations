@@ -501,90 +501,10 @@ function fetchAllSubmissions(assetUid, token) {
 }
 
 function transformNewbornUnitRecord_(rec) {
+  // Whitelist-only: keep _uuid + transformed columns. Drop all other Kobo
+  // metadata / unmapped raw fields (_id, _attachments, formhub/*, meta/*, etc.).
   const out = {};
-  const rawKeysToDrop = {
-    starttime: true, endtime: true, today: true, start: true, end: true,
-    'facility_profile/county': true, 'facility_profile/facility': true,
-    'facility_profile/gazetted_facility': true, 'facility_profile/contact': true,
-    'facility_profile/nam_contact': true, 'facility_profile/phone_contact': true,
-    'facility_profile/unit': true,
-    'service/needs': true, 'service/premature_care': true, 'service/referral_weight': true,
-    'service/nutritional_services': true, 'service/nursing_care': true,
-    'service/congenital_care': true, 'service/asphyxia_care': true,
-    'service/blood_count': true, 'service/malaria_test': true, 'service/urine': true,
-    'service/blood_cultures': true, 'service/lumbar': true, 'service/hiv_antibody': true,
-    'service/coombs': true, 'service/bone_chem': true, 'service/blood_group': true,
-    'service/urinalysis': true, 'service/crp_test': true, 'service/thyroid_test': true,
-    'service/electrolyte': true, 'service/liver_func': true, 'service/creatinine': true,
-    'service/glucose': true, 'service/bilirubin': true, 'service/cranial_ultras': true,
-    'service/x_ray': true, 'service/avg_time': true,
-    'resource/employed_neonatologists': true, 'resource/contract_neonatologists': true,
-    'resource/employed_paed': true, 'resource/contract_paed': true, 'resource/available_24hrs': true,
-    'resource/employed_mos': true, 'resource/contract_mos': true, 'resource/adeq_mos': true,
-    'resource/employed_rn': true, 'resource/contract_rn': true, 'resource/adeq_rn': true,
-    'resource/employed_cos': true, 'resource/contract_cos': true, 'resource/adeq_cos': true,
-    'records/death_reg': true, 'records/consistent_use': true, 'records/integrated_rh_mch': true,
-    'records/inpatient_neonatal_reg': true, 'records/nb_admission': true,
-    'records/patient_files': true,
-    'records/perinatal_notification': true, 'records/perinatal_review': true,
-    'privacy/visual_privacy': true, 'privacy/auditory_privacy': true,
-    'train/newborn': true, 'train/nnr': true, 'train/breastfeeding': true,
-    'train/infections': true, 'train/comprehensive': true, 'train/neonate_hiv': true,
-    'train/kangaroo': true, 'train/sic': true,
-    'sop/sepsis': true, 'sop/jaundice': true, 'sop/hypoglycemia': true,
-    'sop/neo_resus': true, 'sop/kmc': true, 'sop/handwash': true, 'sop/referral': true,
-    'sop/policy': true,
-    'sanitation/wat_sour': true, 'sanitation/wav_avail': true, 'sanitation/drainage': true,
-    'sanitation/sinks': true, 'sanitation/hand': true, 'sanitation/waste': true,
-    'sanitation/bins': true,
-    'sanitation/clean_reg': true, 'sanitation/decontamination': true,
-    'sanitation/checklist': true, 'sanitation/utensil': true,
-    'sanitation/laundry': true, 'sanitation/linen': true,
-    'sanitation/sharp': true, 'sanitation/sharp3_4': true,
-    'sanitation/latrine': true, 'sanitation/lat_client': true,
-    'sanitation/station': true, 'sanitation/disinfect': true,
-    'sanitation/clean': true, 'sanitation/access': true, 'sanitation/menstrual': true,
-    'structure/maintenance': true, 'structure/lighting': true, 'structure/ventilation': true,
-    'structure/proc_rooms': true,
-    'structure/chang_area': true, 'structure/kitchionette': true, 'structure/fire': true,
-    'structure/signs': true, 'structure/charter': true, 'structure/cots': true,
-    'structure/kmc_area': true, 'structure/room_temp': true, 'structure/draught': true,
-    'structure/priv_room': true,
-    'structure/couns_room': true, 'structure/worktop': true, 'structure/desk': true,
-    'structure/neo_space': true, 'structure/iso_room': true, 'structure/resus_area': true,
-    'structure/sluice': true, 'structure/temp_store': true, 'structure/cctv': true,
-    'structure/dust': true,
-    'equip/beds': true, 'equip/resuscitaires': true, 'equip/bed_space': true,
-    'equip/lamp': true, 'equip/warmer': true, 'equip/heat': true, 'equip/clock': true,
-    'equip/thermometer': true, 'equip/exam_light': true, 'equip/cpap': true,
-    'equip/monitors': true, 'equip/neobp': true, 'equip/oximeters': true,
-    'equip/trans_kit': true, 'equip/drip_stands': true, 'equip/stethoscopes': true,
-    'equip/glucometer': true,
-    'equip/pump': true, 'equip/bulbs': true, 'equip/therm': true,
-    'equip/low_therm': true, 'equip/scale': true,
-    'equip/resus_equip': true, 'equip/oxy_source': true,
-    'commodities/tetraycline': true, 'commodities/chlorhexidine': true,
-    'commodities/iv_fluid': true, 'commodities/vitk': true,
-    'commodities/latex': true, 'commodities/sterile': true,
-    'commodities/soluset': true, 'commodities/inf_form': true,
-    'commodities/cups': true, 'commodities/syringes': true,
-    'commodities/needles': true, 'commodities/microdrippers': true,
-    'commodities/iv_sets': true, 'commodities/catheters': true,
-    'commodities/materials': true, 'commodities/suction': true,
-    'commodities/tubes': true,
-    'adherence/kmc2': true, 'adherence/preterm': true, 'adherence/feeding': true,
-    'adherence/breastmilk': true, 'adherence/express': true, 'adherence/plan': true,
-    'adherence/neonates': true, 'adherence/discharge': true,
-    'adherence/disch_note': true, 'adherence/inf_refer': true,
-    'adherence/system': true, 'adherence/caregiver': true, 'adherence/weight': true,
-    'adherence/birth_weight': true, 'adherence/condition': true,
-    'adherence/gestation': true, 'adherence/paediatric': true, 'adherence/care': true,
-    'Section_13_Hours_of_Operation/lab_open': true,
-  };
-
-  Object.keys(rec).forEach(function (key) {
-    if (!rawKeysToDrop[key]) out[key] = rec[key];
-  });
+  out[UUID_FIELD] = rec[UUID_FIELD] == null ? '' : rec[UUID_FIELD];
 
   const dateStarted = formatDateMinute_(firstValue_(rec, ['starttime', 'start']));
   const dateEnded = formatDateMinute_(firstValue_(rec, ['endtime', 'end']));
@@ -864,6 +784,97 @@ function lookupCoded_(raw, map) {
   return keyStr;
 }
 
+function newbornUnitPreferredHeaders_() {
+  return [
+    UUID_FIELD, 'date_started', 'date_ended', 'date_submitted',
+    'county', 'facility', 'facility_level', 'contact_person', 'name_contact',
+    'phone_number', 'functional_nbu', 'newborn_admissions', 'premature_care',
+    'referral_weight', 'nutritional_services', 'nursing_care', 'congenital_care',
+    'asphyxia_care', 'blood_count', 'malaria_test', 'urine', 'blood_cultures',
+    'lumbar_puncture', 'hiv_test', 'coombs_testing', 'bone_chemistry', 'blood_group',
+    'urinalysis', 'crp_test', 'thyroid_test', 'electrolyte', 'liver_function',
+    'creatinine', 'glucose_tests', 'bilirubin_testing', 'cranial_ultrasound',
+    'x_ray', 'imaging_time', 'employed_neonatologists', 'contract_neonatologists',
+    'employed_paediatrician', 'contracted_paediatrician', 'neo_ped_24hrs',
+    'employed_mo', 'contract_mo', 'adequate_mo',
+    'employed_nurses', 'contract_nurses', 'adequate_reg_nurses',
+    'employed_co', 'contract_co', 'adequate_co',
+    'death_register', 'deathreg_consistent_use', 'summary_register',
+    'neonatal_register', 'newborn_admission',
+    'patient_files_observation_charts', 'patient_files_treatment_sheet',
+    'patient_files_weight_chart', 'patient_files_medication_chart',
+    'patient_files_ballard_scoring_sheet', 'patient_files_input_output_monitoring_chart',
+    'patient_files_vital_signs_chart', 'patient_files_care_plans',
+    'patient_files_discharge_summary', 'patient_files_consent_form',
+    'patient_files_pre_medication_notes', 'patient_files_continuation_sheet',
+    'patient_files_none',
+    'perinatal_notification', 'perinatal_review',
+    'visual_privacy', 'auditory_privacy',
+    'newborn_training', 'nnr_training', 'breastfeeding_training',
+    'infections_training', 'comprehensive_training', 'hiv_neonate_training',
+    'kangaroo_training', 'standard_infection_control',
+    'sepsis_sop', 'jaundice_sop', 'hypoglycemia_sop', 'neonatal_resuscitation_sop',
+    'kmc_sop', 'handwash_sop', 'referral_sop',
+    'sop_policy_incubator_temperature_setting', 'sop_policy_gestational_age_assessment',
+    'sop_policy_essential_newborn_care', 'sop_policy_pre_maturity',
+    'sop_policy_low_birth_weight', 'sop_policy_neonatal_convulsions',
+    'sop_policy_neonatal_asphyxia', 'sop_policy_neonatal_infection_sepsis',
+    'sop_policy_congenital_malformations', 'sop_policy_macrosomic_babies',
+    'sop_policy_breastfeeding', 'sop_policy_handling_of_ebm',
+    'sop_policy_assisted_feeding',
+    'sop_policy_standard_infection_prevention_control_and_precautions_for_transmission',
+    'sop_policy_pre_referral_stabilization_of_infants',
+    'sop_policy_verbal_and_written_hand_over_of_newborns_at_shift_changes',
+    'sop_policy_triage_and_waiting_times_for_emergency_and_non_emergency_consultations_and_treatment',
+    'sop_policy_kmc', 'sop_policy_none',
+    'water_source', 'water_available_consistently', 'drainage_system',
+    'separate_sink', 'hand_hygiene', 'waste_management', 'waste_segregation',
+    'cleaning_register', 'decontamination_area', 'decontamination_checklist',
+    'utensil_cleaning_area', 'laundry', 'linen', 'sharp_container',
+    'sharp3_4full', 'latrine', 'latrine_clients', 'handwashing_station',
+    'disinfect_washrooms', 'clean_washroom', 'access_disability',
+    'menstrual_hygiene', 'maintenance_infrastructure', 'well_lit', 'ventilation',
+    'procedure_rooms', 'changing_area', 'kitchionette', 'fire_extinguishers',
+    'clear_signage', 'clear_charter', 'cots_incubator', 'kmc_area', 'room_temp',
+    'draught', 'private_room', 'counselling_room', 'worktop', 'nurse_desk',
+    'space_sick_neonates', 'isolation_room', 'resuscitation_area', 'sluice_room',
+    'temporary_storage', 'cctv', 'dust_evidence',
+    'baby_beds', 'resuscitaires_nbu', 'bed_space', 'phototherapy_lamp',
+    'radiant_warmer', 'heat_source', 'wall_clock',
+    'wall_thermometer', 'exam_light_available', 'equipment_cpap', 'monitors',
+    'neonatal_bp', 'oximeters_neonates', 'transfusion_kit', 'drip_stands',
+    'stethoscopes_nbu', 'glucometer_nbu',
+    'sunction_pump', 'sunction_bulbs', 'thermometer_nbu', 'thermometer_readings',
+    'weighing_scale',
+    'equip_resus_equip_200ml_ambubag', 'equip_resus_equip_300ml_ambubag',
+    'equip_resus_equip_size_0_ambubag_masks', 'equip_resus_equip_size_1_ambubag_masks',
+    'equip_resus_equip_size_2_ambubag_masks', 'equip_resus_equip_none',
+    'equip_oxy_source_full_oxygen_cylinders_or_central_supply',
+    'equip_oxy_source_oxygen_concentrator', 'equip_oxy_source_oxygen_masks_different_sizes',
+    'equip_oxy_source_nasal_prongs_different_sizes',
+    'equip_oxy_source_nasal_prongs_for_continuous_positive_airway_pressure_cpap',
+    'equip_oxy_source_none',
+    'tetraycline', 'chlorhexidine', 'iv_fluid', 'vitk', 'latex', 'sterile',
+    'soluset', 'infant_formula', 'feeding_cups', 'syringe_sizes',
+    'needles_sizes', 'microdrippers', 'iv_sets',
+    'commodities_catheters_size_4', 'commodities_catheters_size_6',
+    'commodities_catheters_size_8', 'commodities_catheters_none',
+    'commodities_materials_kmc', 'commodities_materials_breastfeeding',
+    'commodities_materials_latching', 'commodities_materials_neonatal_danger_signs',
+    'commodities_materials_cord_care', 'commodities_materials_none',
+    'commodities_suction_size_4', 'commodities_suction_size_6',
+    'commodities_suction_size_8', 'commodities_suction_none',
+    'commodities_tubes_size_4', 'commodities_tubes_size_6',
+    'commodities_tubes_size_8', 'commodities_tubes_none',
+    'kmc_initiated', 'preterm_lowbirth', 'feeding_freq',
+    'breastmilk', 'express_milk', 'monitoring_plan', 'neonate_review',
+    'discharge', 'discharge_note', 'infact_referral',
+    'system_near_nbu', 'caregiver', 'weight_gain', 'birth_weight',
+    'condition_stable', 'gestation_34wks', 'paediatric_rco', 'specialized_care',
+    'nbu_open',
+  ];
+}
+
 function appendNewRecordsToSheet(ss, sheetName, records) {
   let sheet = ss.getSheetByName(sheetName);
   if (!sheet) sheet = ss.insertSheet(sheetName);
@@ -883,95 +894,13 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
   if (isEmptyOrPlaceholder) {
     sheet.clearContents();
     const headers = ensureUuidFirst_(buildHeaderUnion_(records));
-    const preferred = [
-      UUID_FIELD, 'date_started', 'date_ended', 'date_submitted',
-      'county', 'facility', 'facility_level', 'contact_person', 'name_contact',
-      'phone_number', 'functional_nbu', 'newborn_admissions', 'premature_care',
-      'referral_weight', 'nutritional_services', 'nursing_care', 'congenital_care',
-      'asphyxia_care', 'blood_count', 'malaria_test', 'urine', 'blood_cultures',
-      'lumbar_puncture', 'hiv_test', 'coombs_testing', 'bone_chemistry', 'blood_group',
-      'urinalysis', 'crp_test', 'thyroid_test', 'electrolyte', 'liver_function',
-      'creatinine', 'glucose_tests', 'bilirubin_testing', 'cranial_ultrasound',
-      'x_ray', 'imaging_time', 'employed_neonatologists', 'contract_neonatologists',
-      'employed_paediatrician', 'contracted_paediatrician', 'neo_ped_24hrs',
-      'employed_mo', 'contract_mo', 'adequate_mo',
-      'employed_nurses', 'contract_nurses', 'adequate_reg_nurses',
-      'employed_co', 'contract_co', 'adequate_co',
-      'death_register', 'deathreg_consistent_use', 'summary_register',
-      'neonatal_register', 'newborn_admission',
-      'patient_files_observation_charts', 'patient_files_treatment_sheet',
-      'patient_files_weight_chart', 'patient_files_medication_chart',
-      'patient_files_ballard_scoring_sheet', 'patient_files_input_output_monitoring_chart',
-      'patient_files_vital_signs_chart', 'patient_files_care_plans',
-      'patient_files_discharge_summary', 'patient_files_consent_form',
-      'patient_files_pre_medication_notes', 'patient_files_continuation_sheet',
-      'patient_files_none',
-      'perinatal_notification', 'perinatal_review',
-      'visual_privacy', 'auditory_privacy',
-      'newborn_training', 'nnr_training', 'breastfeeding_training',
-      'infections_training', 'comprehensive_training', 'hiv_neonate_training',
-      'kangaroo_training', 'standard_infection_control',
-      'sepsis_sop', 'jaundice_sop', 'hypoglycemia_sop', 'neonatal_resuscitation_sop',
-      'kmc_sop', 'handwash_sop', 'referral_sop',
-      'sop_policy_incubator_temperature_setting', 'sop_policy_gestational_age_assessment',
-      'sop_policy_essential_newborn_care', 'sop_policy_pre_maturity',
-      'sop_policy_low_birth_weight', 'sop_policy_neonatal_convulsions',
-      'sop_policy_neonatal_asphyxia', 'sop_policy_neonatal_infection_sepsis',
-      'sop_policy_congenital_malformations', 'sop_policy_macrosomic_babies',
-      'sop_policy_breastfeeding', 'sop_policy_handling_of_ebm',
-      'sop_policy_assisted_feeding',
-      'sop_policy_standard_infection_prevention_control_and_precautions_for_transmission',
-      'sop_policy_pre_referral_stabilization_of_infants',
-      'sop_policy_verbal_and_written_hand_over_of_newborns_at_shift_changes',
-      'sop_policy_triage_and_waiting_times_for_emergency_and_non_emergency_consultations_and_treatment',
-      'sop_policy_kmc', 'sop_policy_none',
-      'water_source', 'water_available_consistently', 'drainage_system',
-      'separate_sink', 'hand_hygiene', 'waste_management', 'waste_segregation',
-      'cleaning_register', 'decontamination_area', 'decontamination_checklist',
-      'utensil_cleaning_area', 'laundry', 'linen', 'sharp_container',
-      'sharp3_4full', 'latrine', 'latrine_clients', 'handwashing_station',
-      'disinfect_washrooms', 'clean_washroom', 'access_disability',
-      'menstrual_hygiene', 'maintenance_infrastructure', 'well_lit', 'ventilation',
-      'procedure_rooms', 'changing_area', 'kitchionette', 'fire_extinguishers',
-      'clear_signage', 'clear_charter', 'cots_incubator', 'kmc_area', 'room_temp',
-      'draught', 'private_room', 'counselling_room', 'worktop', 'nurse_desk',
-      'space_sick_neonates', 'isolation_room', 'resuscitation_area', 'sluice_room',
-      'temporary_storage', 'cctv', 'dust_evidence',
-      'baby_beds', 'resuscitaires_nbu', 'bed_space', 'phototherapy_lamp',
-      'radiant_warmer', 'heat_source', 'wall_clock',
-      'wall_thermometer', 'exam_light_available', 'equipment_cpap', 'monitors',
-      'neonatal_bp', 'oximeters_neonates', 'transfusion_kit', 'drip_stands',
-      'stethoscopes_nbu', 'glucometer_nbu',
-      'sunction_pump', 'sunction_bulbs', 'thermometer_nbu', 'thermometer_readings',
-      'weighing_scale',
-      'equip_resus_equip_200ml_ambubag', 'equip_resus_equip_300ml_ambubag',
-      'equip_resus_equip_size_0_ambubag_masks', 'equip_resus_equip_size_1_ambubag_masks',
-      'equip_resus_equip_size_2_ambubag_masks', 'equip_resus_equip_none',
-      'equip_oxy_source_full_oxygen_cylinders_or_central_supply',
-      'equip_oxy_source_oxygen_concentrator', 'equip_oxy_source_oxygen_masks_different_sizes',
-      'equip_oxy_source_nasal_prongs_different_sizes',
-      'equip_oxy_source_nasal_prongs_for_continuous_positive_airway_pressure_cpap',
-      'equip_oxy_source_none',
-      'tetraycline', 'chlorhexidine', 'iv_fluid', 'vitk', 'latex', 'sterile',
-      'soluset', 'infant_formula', 'feeding_cups', 'syringe_sizes',
-      'needles_sizes', 'microdrippers', 'iv_sets',
-      'commodities_catheters_size_4', 'commodities_catheters_size_6',
-      'commodities_catheters_size_8', 'commodities_catheters_none',
-      'commodities_materials_kmc', 'commodities_materials_breastfeeding',
-      'commodities_materials_latching', 'commodities_materials_neonatal_danger_signs',
-      'commodities_materials_cord_care', 'commodities_materials_none',
-      'commodities_suction_size_4', 'commodities_suction_size_6',
-      'commodities_suction_size_8', 'commodities_suction_none',
-      'commodities_tubes_size_4', 'commodities_tubes_size_6',
-      'commodities_tubes_size_8', 'commodities_tubes_none',
-      'kmc_initiated', 'preterm_lowbirth', 'feeding_freq',
-      'breastmilk', 'express_milk', 'monitoring_plan', 'neonate_review',
-      'discharge', 'discharge_note', 'infact_referral',
-      'system_near_nbu', 'caregiver', 'weight_gain', 'birth_weight',
-      'condition_stable', 'gestation_34wks', 'paediatric_rco', 'specialized_care',
-      'nbu_open',
-    ];
-    writeRows_(sheet, orderHeaders_(headers, preferred), records, 2, true);
+    const preferred = newbornUnitPreferredHeaders_();
+    // Newborn Unit: exact preferred columns only (no leftover meta).
+    // Other sheets: preferred order when present, then remaining keys.
+    const ordered = sheetName === 'Newborn Unit'
+      ? preferred
+      : orderHeaders_(headers, preferred);
+    writeRows_(sheet, ordered, records, 2, true);
     sheet.setFrozenRows(1);
     return { appended: records.length, skipped: 0 };
   }
@@ -997,12 +926,15 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
   const skipped = records.length - newRecords.length;
   if (newRecords.length === 0) return { appended: 0, skipped: skipped };
 
-  const headerSet = {};
-  headers.forEach(function (h) { headerSet[h] = true; });
-  buildHeaderUnion_(newRecords).forEach(function (key) {
-    if (!headerSet[key]) { headers.push(key); headerSet[key] = true; }
-  });
-  if (headers.length > lastCol) sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  // Newborn Unit stays on its preferred columns; do not append meta/raw keys.
+  if (sheetName !== 'Newborn Unit') {
+    const headerSet = {};
+    headers.forEach(function (h) { headerSet[h] = true; });
+    buildHeaderUnion_(newRecords).forEach(function (key) {
+      if (!headerSet[key]) { headers.push(key); headerSet[key] = true; }
+    });
+    if (headers.length > lastCol) sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
 
   writeRows_(sheet, headers, newRecords, lastRow + 1, false);
   sheet.setFrozenRows(1);
