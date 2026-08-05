@@ -17,11 +17,28 @@ const KOBO_PAGE_PAUSE_MS = 500;
 const KOBO_FORM_PAUSE_MS = 1500;
 const FACILITY_MAP_CUTOFF = '2026-01-01';
 
-/** Sheets that write preferred columns only (no raw Kobo meta pass-through). */
-const WHITELIST_SHEETS = {
+/**
+ * Transformed sheets: true keeps every raw Kobo field that no transform has
+ * consumed yet (written after the transformed columns), false writes the
+ * preferred transformed columns only. Flip to false once a form's transforms
+ * are finished.
+ */
+const KEEP_UNTRANSFORMED_COLUMNS = {
   'Newborn Unit': true,
   'Inpatient Maternity': true,
 };
+
+/** Raw Kobo fields never worth a column: bulky blobs or internal bookkeeping. */
+const RAW_PASSTHROUGH_SKIP_KEYS = {
+  _attachments: true,
+  _supplementalDetails: true,
+  _notes: true,
+  _tags: true,
+  _validation_status: true,
+};
+
+/** Google Sheets rejects cell text beyond 50k characters. */
+const MAX_CELL_CHARS = 45000;
 
 const FORM_CONFIG = [
   { uid: 'aQb68NgWt27XdYZcLjBeEg', sheetName: 'Newborn Unit' },
@@ -568,9 +585,36 @@ function fetchAllSubmissions(assetUid, token) {
 }
 
 function transformRecordsForSheet_(sheetName, records) {
-  if (sheetName === 'Newborn Unit') return records.map(transformNewbornUnitRecord_);
-  if (sheetName === 'Inpatient Maternity') return records.map(transformInpatientMaternityRecord_);
-  return records;
+  let transform = null;
+  if (sheetName === 'Newborn Unit') transform = transformNewbornUnitRecord_;
+  if (sheetName === 'Inpatient Maternity') transform = transformInpatientMaternityRecord_;
+  if (!transform) return records;
+
+  const keepRaw = KEEP_UNTRANSFORMED_COLUMNS[sheetName] !== false;
+  return records.map(function (rec) {
+    return keepRaw ? transformKeepingRawFields_(rec, transform) : transform(rec);
+  });
+}
+
+/**
+ * Run a transform, then append the raw fields it never read so work-in-progress
+ * forms still show every Kobo column. Reads go through a Proxy, so a field stops
+ * appearing raw the moment a transform starts using it.
+ */
+function transformKeepingRawFields_(rec, transform) {
+  const consumed = {};
+  const tracked = new Proxy(rec, {
+    get: function (target, prop) {
+      if (typeof prop === 'string') consumed[prop] = true;
+      return target[prop];
+    },
+  });
+  const out = transform(tracked);
+  Object.keys(rec).forEach(function (key) {
+    if (consumed[key] || RAW_PASSTHROUGH_SKIP_KEYS[key]) return;
+    if (out[key] === undefined) out[key] = flattenCell_(rec[key]);
+  });
+  return out;
 }
 
 /** Decode the shared facility_profile block onto out. */
@@ -586,9 +630,6 @@ function assignFacilityProfile_(out, rec, dateSubmitted, facilityKey) {
 }
 
 function transformInpatientMaternityRecord_(rec) {
-  // Whitelist-only: keep _uuid + transformed columns. Drop raw Kobo meta
-  // (_attachments, _geolocation, unmapped fields, etc.) so the sheet write
-  // stays narrow enough for Apps Script setValues.
   const out = {};
   out[UUID_FIELD] = rec[UUID_FIELD] == null ? '' : rec[UUID_FIELD];
 
@@ -696,8 +737,6 @@ function transformInpatientMaternityRecord_(rec) {
 }
 
 function transformNewbornUnitRecord_(rec) {
-  // Whitelist-only: keep _uuid + transformed columns. Drop all other Kobo
-  // metadata / unmapped raw fields (_id, _attachments, formhub/*, meta/*, etc.).
   const out = {};
   out[UUID_FIELD] = rec[UUID_FIELD] == null ? '' : rec[UUID_FIELD];
 
@@ -906,12 +945,15 @@ function transformNewbornUnitRecord_(rec) {
   return out;
 }
 
+/** Reads every candidate key (not just up to the first hit) so that raw
+ * pass-through treats all of them as consumed. */
 function firstValue_(rec, keys) {
+  let found = '';
   for (let i = 0; i < keys.length; i++) {
     const v = rec[keys[i]];
-    if (v !== undefined && v !== null && v !== '') return v;
+    if (found === '' && v !== undefined && v !== null && v !== '') found = v;
   }
-  return '';
+  return found;
 }
 
 function formatDateMinute_(value) {
@@ -1127,9 +1169,9 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
     sheet.clearContents();
     const headers = ensureUuidFirst_(buildHeaderUnion_(records));
     const preferred = preferredHeadersForSheet_(sheetName);
-    // Whitelist sheets: exact preferred columns only (no leftover meta).
-    // Other sheets: preferred order when present, then remaining keys.
-    const ordered = WHITELIST_SHEETS[sheetName]
+    // Transformed columns first, then whatever raw fields the records still
+    // carry; whitelist sheets write the preferred columns only.
+    const ordered = isWhitelistSheet_(sheetName)
       ? preferred
       : orderHeaders_(headers, preferred);
     writeRows_(sheet, ordered, records, 2, true);
@@ -1159,13 +1201,16 @@ function appendNewRecordsToSheet(ss, sheetName, records) {
   if (newRecords.length === 0) return { appended: 0, skipped: skipped };
 
   // Whitelist sheets stay on preferred columns; do not append meta/raw keys.
-  if (!WHITELIST_SHEETS[sheetName]) {
+  if (!isWhitelistSheet_(sheetName)) {
     const headerSet = {};
     headers.forEach(function (h) { headerSet[h] = true; });
     buildHeaderUnion_(newRecords).forEach(function (key) {
       if (!headerSet[key]) { headers.push(key); headerSet[key] = true; }
     });
-    if (headers.length > lastCol) sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    if (headers.length > lastCol) {
+      ensureSheetCapacity_(sheet, 1, headers.length);
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    }
   }
 
   writeRows_(sheet, headers, newRecords, lastRow + 1, false);
@@ -1194,15 +1239,32 @@ function orderHeaders_(headers, preferredFront) {
   return front.concat(headers.filter(function (h) { return !frontSet[h]; }));
 }
 
+function isWhitelistSheet_(sheetName) {
+  return KEEP_UNTRANSFORMED_COLUMNS[sheetName] === false;
+}
+
 function flattenCell_(val) {
   if (val === undefined || val === null) return '';
-  if (typeof val === 'object') return JSON.stringify(val);
-  return val;
+  const cell = typeof val === 'object' ? JSON.stringify(val) : val;
+  if (typeof cell === 'string' && cell.length > MAX_CELL_CHARS) {
+    return cell.substring(0, MAX_CELL_CHARS);
+  }
+  return cell;
+}
+
+/** A sheet starts at 26 columns, so wide pass-through writes need room first. */
+function ensureSheetCapacity_(sheet, lastRowNeeded, lastColNeeded) {
+  const maxRows = sheet.getMaxRows();
+  if (lastRowNeeded > maxRows) sheet.insertRowsAfter(maxRows, lastRowNeeded - maxRows);
+  const maxCols = sheet.getMaxColumns();
+  if (lastColNeeded > maxCols) sheet.insertColumnsAfter(maxCols, lastColNeeded - maxCols);
 }
 
 function writeRows_(sheet, headers, records, startRow, writeHeader) {
+  const numRows = records ? records.length : 0;
+  ensureSheetCapacity_(sheet, startRow + Math.max(numRows, 1) - 1, headers.length);
   if (writeHeader) sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-  if (!records || records.length === 0) return;
+  if (numRows === 0) return;
 
   // Write in chunks to avoid Apps Script setValues payload limits on wide sheets.
   const CHUNK = 100;
