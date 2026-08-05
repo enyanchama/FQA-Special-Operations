@@ -8,7 +8,6 @@ function transformNewbornUnit() {
     newbornUnitPreferredHeaders_
   );
 }
-
 function transformNewbornUnitRecord_(rec) {
   const out = {};
   out[UUID_FIELD] = rec[UUID_FIELD] == null ? '' : rec[UUID_FIELD];

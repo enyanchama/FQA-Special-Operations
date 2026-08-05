@@ -8,7 +8,6 @@ function transformInpatientMaternity() {
     inpatientMaternityPreferredHeaders_
   );
 }
-
 /** Short alias for manual use. */
 function transformMaternity() {
   return transformInpatientMaternity();

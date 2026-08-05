@@ -1,11 +1,5 @@
 /** Google Sheets persistence helpers for raw staging and final datasets. */
 
-function preferredHeadersForSheet_(sheetName) {
-  if (sheetName === 'Newborn Unit') return newbornUnitPreferredHeaders_();
-  if (sheetName === 'Inpatient Maternity') return inpatientMaternityPreferredHeaders_();
-  return [];
-}
-
 function appendNewRecordsToSheet(ss, sheetName, records, preferredHeaders) {
   let sheet = ss.getSheetByName(sheetName);
   if (!sheet) sheet = ss.insertSheet(sheetName);
@@ -25,7 +19,7 @@ function appendNewRecordsToSheet(ss, sheetName, records, preferredHeaders) {
   if (isEmptyOrPlaceholder) {
     sheet.clearContents();
     const headers = ensureUuidFirst_(buildHeaderUnion_(records));
-    const preferred = preferredHeaders || preferredHeadersForSheet_(sheetName);
+    const preferred = preferredHeaders || [];
     // Transformed columns first, then whatever raw fields the records still
     // carry; whitelist sheets write the preferred columns only.
     const ordered = isWhitelistSheet_(sheetName)

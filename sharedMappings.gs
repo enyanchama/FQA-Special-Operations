@@ -100,7 +100,6 @@ const ULTRASOUND_AVAIL_MAP = {
   2: 'No but available in a separate unit in this facility',
   3: 'Not available in this facility',
 };
-
 /**
  * select_multiple: records/patient_files
  * Output columns: patient_files_<choice_slug> = Yes / No / '' (blank if skipped)

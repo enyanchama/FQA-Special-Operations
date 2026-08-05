@@ -6,7 +6,6 @@ function transformDatasetRecords_(sheetName, records, transform) {
     return keepRaw ? transformKeepingRawFields_(rec, transform) : transform(rec);
   });
 }
-
 /** Read a staged dataset, transform it, and atomically rebuild its output. */
 function transformDatasetSheet_(sheetName, transform, preferredHeadersFactory) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -14,7 +13,10 @@ function transformDatasetSheet_(sheetName, transform, preferredHeadersFactory) {
   const transformed = transformDatasetRecords_(sheetName, records, transform);
   const preferredHeaders = preferredHeadersFactory();
   replaceRecordsInSheet_(ss, sheetName, transformed, preferredHeaders);
-  return { rows: transformed.length, columns: preferredHeaders.length };
+  return {
+    rows: transformed.length,
+    columns: buildHeaderUnion_(transformed).length,
+  };
 }
 
 /**
