@@ -221,6 +221,13 @@ const MATERIALS_CHOICES = [
   { code: '6', slug: 'none' },
 ];
 
+const MATERNITY_IMMUNIZATION_CHOICES = [
+  { code: '1', slug: 'bcg' },
+  { code: '2', slug: 'hep_b' },
+  { code: '3', slug: 'opv' },
+  { code: '4', slug: 'none' },
+];
+
 const FACILITY_MAP_FROM_2026 = {
   1: 'Kitutu Chache North Sub County Referral Hospital',
   2: 'Entanda Health Centre',
@@ -678,6 +685,12 @@ function transformInpatientMaternityRecord_(rec) {
   out.newborn_file = lookupCoded_(
     rec['health_records/newborn'], MATERNITY_FILE_AVAILABILITY_MAP
   );
+  expandSelectMultiple_(
+    out,
+    rec['services_offered/immunization'],
+    'services_offered_immunization',
+    MATERNITY_IMMUNIZATION_CHOICES
+  );
 
   return out;
 }
@@ -1083,6 +1096,8 @@ function inpatientMaternityPreferredHeaders_() {
     'delivery_reg_used', 'postnatal_register', 'postnatal_reg_used',
     'nutrition_register', 'newborn_register', 'newborn_register_used',
     'kmc_register', 'inpatient_maternity_file', 'newborn_file',
+    'services_offered_immunization_bcg', 'services_offered_immunization_hep_b',
+    'services_offered_immunization_opv', 'services_offered_immunization_none',
   ];
 }
 
