@@ -1,16 +1,10 @@
 /** Newborn Unit cleaning, standardization, and calculated fields. */
 
-/** Independently rebuild the Newborn Unit output from raw staging data. */
-function transformNewbornUnit() {
-  return transformDatasetSheet_(
-    'Newborn Unit',
-    transformNewbornUnitRecord_,
-    newbornUnitPreferredHeaders_
-  );
-}
 function transformNewbornUnitRecord_(rec) {
   const out = {};
   out[UUID_FIELD] = rec[UUID_FIELD] == null ? '' : rec[UUID_FIELD];
+
+  assignPassthrough_(out, rec, NEWBORN_UNIT_SOURCE_KEYS);
 
   const dateStarted = formatDateMinute_(firstValue_(rec, ['starttime', 'start']));
   const dateEnded = formatDateMinute_(firstValue_(rec, ['endtime', 'end']));
@@ -217,8 +211,6 @@ function transformNewbornUnitRecord_(rec) {
   return out;
 }
 
-/** Reads every candidate key (not just up to the first hit) so that raw
- * pass-through treats all of them as consumed. */
 function newbornUnitPreferredHeaders_() {
   return [
     UUID_FIELD, 'date_started', 'date_ended', 'date_submitted',

@@ -1,21 +1,10 @@
 /** Inpatient Maternity cleaning, standardization, and calculated fields. */
 
-/** Independently rebuild the Inpatient Maternity output from raw staging data. */
-function transformInpatientMaternity() {
-  return transformDatasetSheet_(
-    'Inpatient Maternity',
-    transformInpatientMaternityRecord_,
-    inpatientMaternityPreferredHeaders_
-  );
-}
-/** Short alias for manual use. */
-function transformMaternity() {
-  return transformInpatientMaternity();
-}
-
 function transformInpatientMaternityRecord_(rec) {
   const out = {};
   out[UUID_FIELD] = rec[UUID_FIELD] == null ? '' : rec[UUID_FIELD];
+
+  assignPassthrough_(out, rec, INPATIENT_MATERNITY_SOURCE_KEYS);
 
   const dateSubmitted = formatDateMinute_(rec['_submission_time']);
   out.date_started = formatDateMinute_(firstValue_(rec, ['start', 'starttime']));
