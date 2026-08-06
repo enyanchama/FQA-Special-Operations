@@ -1173,59 +1173,6 @@ function appendNewRecordsToSheet(ss, sheetName, records, preferredHeaders) {
   return { appended: newRecords.length, skipped: skipped };
 }
 
-/**
- * Overwrite a sheet with the given records.
- *
- * Every cell is built before the sheet is cleared, so a failure while
- * preparing the data leaves the previous contents untouched.
- */
-function replaceSheetRecords(ss, sheetName, records, preferredHeaders) {
-  let sheet = ss.getSheetByName(sheetName);
-  if (!sheet) sheet = ss.insertSheet(sheetName);
-
-  if (!records || records.length === 0) {
-    sheet.clearContents();
-    sheet.getRange(1, 1).setValue('No submissions found.');
-    return { appended: 0, skipped: 0, columns: 0 };
-  }
-
-  const preferred = preferredHeaders || [];
-  const headers = isWhitelistSheet_(sheetName)
-    ? preferred
-    : orderHeaders_(ensureUuidFirst_(buildHeaderUnion_(records)), preferred);
-
-  const rows = records.map(function (rec) {
-    return headers.map(function (h) { return flattenCell_(rec[h]); });
-  });
-
-  const previousRows = sheet.getLastRow();
-  const previousCols = sheet.getLastColumn();
-
-  ensureSheetCapacity_(sheet, rows.length + 1, headers.length);
-  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-
-  // Chunked writes keep each setValues payload within Apps Script limits.
-  const CHUNK = 100;
-  for (let offset = 0; offset < rows.length; offset += CHUNK) {
-    const slice = rows.slice(offset, offset + CHUNK);
-    sheet.getRange(2 + offset, 1, slice.length, headers.length).setValues(slice);
-  }
-
-  // Drop only what the previous run left behind, once the new data is in place.
-  const writtenRows = rows.length + 1;
-  if (previousRows > writtenRows) {
-    sheet.getRange(writtenRows + 1, 1, previousRows - writtenRows, sheet.getMaxColumns())
-      .clearContent();
-  }
-  if (previousCols > headers.length) {
-    sheet.getRange(1, headers.length + 1, writtenRows, previousCols - headers.length)
-      .clearContent();
-  }
-
-  sheet.setFrozenRows(1);
-  return { appended: rows.length, skipped: 0, columns: headers.length };
-}
-
 function buildHeaderUnion_(records) {
   const headerSet = {};
   records.forEach(function (rec) {
