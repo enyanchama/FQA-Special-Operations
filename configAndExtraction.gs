@@ -847,6 +847,8 @@ const INPATIENT_MATERNITY_SOURCE_KEYS = makeKeySet_([
   'Section_7_Standard_operating_procedure/sepsis',
   'Section_7_Standard_operating_procedure/sop',
   'Section_7_Standard_operating_procedure/checklist',
+  'Section_9_Infrastructure/triage',
+  'Section_9_Infrastructure/waiting_area',
   'services_offered/anomalies',
   'services_offered/antibiotics',
   'services_offered/antibiotics_001',

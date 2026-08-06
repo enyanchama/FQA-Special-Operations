@@ -232,21 +232,27 @@ function transformInpatientMaternityRecord_(rec) {
   out.wash_disposal = lookupCoded_(rec['wash/disposal'], WASTE_MANAGEMENT_MAP);
   out.wash_leak_proof = lookupCoded_(rec['wash/leak_proof'], YES_NO_MAP);
   out.wash_sharp = lookupCoded_(rec['wash/sharp'], YES_NO_MAP);
-  out.wash_visible = lookupCoded_(rec['wash/visible'], YES_NO_MAP);
+  out.wash_visible_waste_container = lookupCoded_(rec['wash/visible'], YES_NO_MAP);
   const latrineMap = rec['__version__'] === MATERNITY_LEGACY_LATRINE_VERSION
     ? MATERNITY_LEGACY_LATRINE_MAP
     : MATERNITY_LATRINE_MAP;
   out.wash_latrine = lookupCoded_(rec['wash/latrine'], latrineMap);
   out.wash_station = lookupCoded_(rec['wash/station'], YES_NO_MAP);
-  out.wash_bathrooms = lookupCoded_(
+  out.wash_bathrooms_cleaning = lookupCoded_(
     rec['wash/bathrooms'], MATERNITY_BATHROOM_CLEANING_MAP
   );
   out.wash_clean = lookupCoded_(rec['wash/clean'], YES_NO_MAP);
   out.wash_accessible = lookupCoded_(rec['wash/accessible'], YES_NO_MAP);
-  out.wash_gender = lookupCoded_(rec['wash/gender'], YES_NO_MAP);
+  out.wash_gender_separated = lookupCoded_(rec['wash/gender'], YES_NO_MAP);
   out.wash_menstrual = lookupCoded_(rec['wash/menstrual'], YES_NO_MAP);
-  out.wash_no_toilets = rec['wash/no_toilets'] == null ? '' : rec['wash/no_toilets'];
+  out.wash_no_toilets = toIntegerOrBlank_(rec['wash/no_toilets']);
   out.wash_labour = lookupCoded_(rec['wash/labour'], YES_NO_MAP);
+  out.infrastructure_triage = lookupCoded_(
+    rec['Section_9_Infrastructure/triage'], YES_NO_MAP
+  );
+  out.infrastructure_waiting_area = lookupCoded_(
+    rec['Section_9_Infrastructure/waiting_area'], YES_NO_MAP
+  );
   expandSelectMultiple_(
     out,
     rec['services_offered/immunization'],
@@ -322,9 +328,11 @@ function inpatientMaternityPreferredHeaders_() {
     .concat([
       'wash_source', 'wash_water_frequency', 'wash_hand_washing',
       'wash_drainage', 'wash_disposable_towels', 'wash_disposal',
-      'wash_leak_proof', 'wash_sharp', 'wash_visible', 'wash_latrine',
-      'wash_station', 'wash_bathrooms', 'wash_clean', 'wash_accessible',
-      'wash_gender', 'wash_menstrual', 'wash_no_toilets', 'wash_labour',
+      'wash_leak_proof', 'wash_sharp', 'wash_visible_waste_container',
+      'wash_latrine', 'wash_station', 'wash_bathrooms_cleaning', 'wash_clean',
+      'wash_accessible', 'wash_gender_separated', 'wash_menstrual',
+      'wash_no_toilets', 'wash_labour', 'infrastructure_triage',
+      'infrastructure_waiting_area',
     ])
     .concat(selectMultipleHeaders_(
       'services_offered_immunization',
