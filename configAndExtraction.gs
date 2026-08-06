@@ -226,6 +226,87 @@ const MATERNITY_IMMUNIZATION_CHOICES = [
   { code: '4', slug: 'none' },
 ];
 
+const MATERNITY_PATIENT_FILE_CHOICES = [
+  { code: '1', slug: 'observation_charts' },
+  { code: '2', slug: 'patient_cardex' },
+  { code: '3', slug: 'fluid_ins_outs_record' },
+  { code: '4', slug: 'partograph' },
+  { code: '5', slug: 'treatment_sheet' },
+  { code: '6', slug: 'care_plans' },
+  { code: '7', slug: 'discharge_summary' },
+  { code: '8', slug: 'consent_form' },
+  { code: '9', slug: 'pre_medication_notes' },
+  { code: '10', slug: 'theatre_notes' },
+  { code: '11', slug: 'consultation_progress_notes' },
+  { code: '12', slug: 'none' },
+];
+
+const MATERNITY_BED_SPACE_MAP = {
+  1: 'All beds are appropriately spaced',
+  2: 'Some beds are appropriately spaced',
+  3: 'No beds are appropriately spaced',
+};
+
+const MATERNITY_BARRIER_MAP = {
+  1: 'Visual barriers in place for ALL exam spaces',
+  2: 'Visual barriers in place for SOME exam spaces',
+  3: 'Visual barriers in place for NO exam spaces',
+};
+
+const MATERNITY_POLICY_A_CHOICES = [
+  { code: '1', slug: 'pain_management_in_labour' },
+  { code: '2', slug: 'breastfeeding' },
+  { code: '3', slug: 'postnatal_care_in_the_maternity_and_or_postnatal_care_areas_of_the_maternity_unit' },
+  { code: '4', slug: 'standard_infection_prevention_control_and_precautions_for_transmission' },
+  { code: '5', slug: 'harmful_practices_and_unnecessary_interventions_during_labour_childbirth_and_the_early_postnatal_period' },
+  { code: '6', slug: 'identification_pre_referral_management_and_referral_of_women_with_complications_related_to_pregnancy_labour_childbirth_and_postpartum_period' },
+  { code: '7', slug: 'obstetric_hemorrhage' },
+  { code: '8', slug: 'premature_labour' },
+  { code: '9', slug: 'pre_eclampsia_and_post_eclampsia' },
+  { code: '10', slug: 'anaemia' },
+  { code: '11', slug: 'none' },
+];
+
+const MATERNITY_POLICY_B_CHOICES = [
+  { code: '1', slug: 'abnormal_lie_after_36_weeks' },
+  { code: '2', slug: 'treatment_of_women_with_or_at_risk_for_infections_during_labour_childbirth_and_the_early_postnatal_period' },
+  { code: '3', slug: 'febrile_conditions' },
+  { code: '4', slug: 'deep_venous_thrombosis' },
+  { code: '5', slug: 'chronic_medical_conditions' },
+  { code: '6', slug: 'prolonged_obstructed_labour' },
+  { code: '7', slug: 'fetal_distress_cord_accidents' },
+  { code: '8', slug: 'maternal_sepsis' },
+  { code: '9', slug: 'maternal_resuscitation_cpr' },
+  { code: '10', slug: 'post_partum_sepsis' },
+  { code: '11', slug: 'none' },
+];
+
+const MATERNITY_POLICY_C_CHOICES = [
+  { code: '1', slug: 'postpartum_psychosis' },
+  { code: '2', slug: 'essential_newborn_care' },
+  { code: '3', slug: 'pre_maturity' },
+  { code: '4', slug: 'low_birth_weight' },
+  { code: '5', slug: 'neonatal_convulsions' },
+  { code: '6', slug: 'neonatal_asphyxia' },
+  { code: '7', slug: 'neonatal_infection_sepsis' },
+  { code: '8', slug: 'congenital_malformations' },
+  { code: '9', slug: 'macrosomic_babies' },
+  { code: '10', slug: 'wound_care' },
+  { code: '11', slug: 'none' },
+];
+
+const MATERNITY_POLICY_D_CHOICES = [
+  { code: '1', slug: 'how_to_deal_with_the_deceased' },
+  { code: '2', slug: 'handling_and_processing_of_contaminated_materials_and_infectious_waste' },
+  { code: '3', slug: 'triage_and_waiting_times_for_emergency_and_non_emergency_consultations_and_treatment' },
+  { code: '4', slug: 'verbal_and_written_hand_over_of_women_and_newborns_at_shift_changes' },
+  { code: '5', slug: 'against_inappropriate_use_of_social_media_by_health_workers' },
+  { code: '6', slug: 'obtaining_informed_consent_before_examinations_and_procedures' },
+  { code: '7', slug: 'companion_of_choice_during_labour_childbirth_and_immediate_postnatal_period' },
+  { code: '8', slug: 'zero_tolerance_non_discriminatory_policy_against_mistreatment' },
+  { code: '9', slug: 'none' },
+];
+
 const FACILITY_MAP_FROM_2026 = {
   1: 'Kitutu Chache North Sub County Referral Hospital',
   2: 'Entanda Health Centre',
@@ -691,15 +772,40 @@ const INPATIENT_MATERNITY_SOURCE_KEYS = makeKeySet_([
   'health_records/delivery',
   'health_records/dl_register',
   'health_records/dregister',
+  'health_records/autopsy_forms',
   'health_records/imf',
   'health_records/kmc',
+  'health_records/maternal_death',
+  'health_records/maternal_review',
   'health_records/newborn',
   'health_records/newborn_register',
   'health_records/nregister',
   'health_records/nutrition',
+  'health_records/patient_file',
+  'health_records/perinatal_death',
+  'health_records/perinatl_review',
   'health_records/postnatal',
   'health_records/pregister',
   'hrh/rehab',
+  'Section_5_Privacy_confidentiality/auditory',
+  'Section_5_Privacy_confidentiality/barrier',
+  'Section_5_Privacy_confidentiality/beds',
+  'Section_5_Privacy_confidentiality/files',
+  'Section_5_Privacy_confidentiality/single_rooms',
+  'Section_5_Privacy_confidentiality/visual',
+  'Section_7_Standard_operating_procedure/eclampsia',
+  'Section_7_Standard_operating_procedure/handwashing',
+  'Section_7_Standard_operating_procedure/intrapartum',
+  'Section_7_Standard_operating_procedure/newborn_mgt',
+  'Section_7_Standard_operating_procedure/policy_a',
+  'Section_7_Standard_operating_procedure/policy_b',
+  'Section_7_Standard_operating_procedure/policy_c',
+  'Section_7_Standard_operating_procedure/policy_d',
+  'Section_7_Standard_operating_procedure/pph',
+  'Section_7_Standard_operating_procedure/pre_eclampsia',
+  'Section_7_Standard_operating_procedure/referral',
+  'Section_7_Standard_operating_procedure/rescuscitation',
+  'Section_7_Standard_operating_procedure/sepsis',
   'services_offered/anomalies',
   'services_offered/antibiotics',
   'services_offered/antibiotics_001',
@@ -740,6 +846,27 @@ const INPATIENT_MATERNITY_SOURCE_KEYS = makeKeySet_([
   'services_offered/xray',
   'start',
   'starttime',
+  'training/abortion_care',
+  'training/breastfeeding_001',
+  'training/cardio',
+  'training/communication',
+  'training/companion',
+  'training/emotional_sup',
+  'training/emonc_guidelines',
+  'training/family_planning',
+  'training/haemovigi',
+  'training/harmful_prac',
+  'training/ipc',
+  'training/mpdsr_001',
+  'training/newborn_care_001',
+  'training/newborn_infection',
+  'training/nnr',
+  'training/obstetric_care',
+  'training/pain_relief',
+  'training/pnc',
+  'training/rmc',
+  'training/stress_mgt',
+  'training/support',
 ]);
 
 /**
@@ -889,6 +1016,12 @@ function expandSelectMultiple_(out, raw, prefix, choices) {
     } else {
       out[col] = selectedSet[String(choice.code)] ? 'Yes' : 'No';
     }
+  });
+}
+
+function selectMultipleHeaders_(prefix, choices) {
+  return choices.map(function (choice) {
+    return prefix + '_' + choice.slug;
   });
 }
 

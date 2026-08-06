@@ -101,6 +101,120 @@ function transformInpatientMaternityRecord_(rec) {
   );
   expandSelectMultiple_(
     out,
+    rec['health_records/patient_file'],
+    'health_records_patient_file',
+    MATERNITY_PATIENT_FILE_CHOICES
+  );
+  out.maternal_death_forms = lookupCoded_(
+    rec['health_records/maternal_death'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.perinatal_deaths_forms = lookupCoded_(
+    rec['health_records/perinatal_death'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.maternal_review_forms = lookupCoded_(
+    rec['health_records/maternal_review'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.perinatal_review_forms = lookupCoded_(
+    rec['health_records/perinatl_review'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.autopsy_forms = lookupCoded_(
+    rec['health_records/autopsy_forms'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+
+  out.visual_privacy = lookupCoded_(
+    rec['Section_5_Privacy_confidentiality/visual'], ROOM_PRIVACY_MAP
+  );
+  out.auditory_privacy = lookupCoded_(
+    rec['Section_5_Privacy_confidentiality/auditory'], ROOM_PRIVACY_MAP
+  );
+  out.patient_files_privacy = lookupCoded_(
+    rec['Section_5_Privacy_confidentiality/files'], YES_NO_MAP
+  );
+  out.single_rooms = lookupCoded_(
+    rec['Section_5_Privacy_confidentiality/single_rooms'], YES_NO_MAP
+  );
+  out.bed_space = lookupCoded_(
+    rec['Section_5_Privacy_confidentiality/beds'], MATERNITY_BED_SPACE_MAP
+  );
+  out.barrier_procedure_rooms = lookupCoded_(
+    rec['Section_5_Privacy_confidentiality/barrier'], MATERNITY_BARRIER_MAP
+  );
+
+  out.training_emonc_guideline = formatYearMonth_(rec['training/emonc_guidelines']);
+  out.training_support = formatYearMonth_(rec['training/support']);
+  out.training_nnr = formatYearMonth_(rec['training/nnr']);
+  out.training_pnc = formatYearMonth_(rec['training/pnc']);
+  out.training_ipc = formatYearMonth_(rec['training/ipc']);
+  out.training_newborn_infection = formatYearMonth_(rec['training/newborn_infection']);
+  out.training_harmful_practices = formatYearMonth_(rec['training/harmful_prac']);
+  out.training_communication = formatYearMonth_(rec['training/communication']);
+  out.training_breastfeeding_001 = formatYearMonth_(rec['training/breastfeeding_001']);
+  out.training_companion = formatYearMonth_(rec['training/companion']);
+  out.training_pain_relief = formatYearMonth_(rec['training/pain_relief']);
+  out.training_emotional_support = formatYearMonth_(rec['training/emotional_sup']);
+  out.training_rmc = formatYearMonth_(rec['training/rmc']);
+  out.training_obstretric_care = formatYearMonth_(rec['training/obstetric_care']);
+  out.training_newborn_care_001 = formatYearMonth_(rec['training/newborn_care_001']);
+  out.training_abortion_care = formatYearMonth_(rec['training/abortion_care']);
+  out.training_family_planning = formatYearMonth_(rec['training/family_planning']);
+  out.training_cardio = formatYearMonth_(rec['training/cardio']);
+  out.training_haemovigilance = formatYearMonth_(rec['training/haemovigi']);
+  out.training_stress_management = formatYearMonth_(rec['training/stress_mgt']);
+  out.training_mpdsr_001 = formatYearMonth_(rec['training/mpdsr_001']);
+
+  out.sop_intrapartum = lookupCoded_(
+    rec['Section_7_Standard_operating_procedure/intrapartum'], SOP_PROTOCOL_MAP
+  );
+  out.sop_pph = lookupCoded_(
+    rec['Section_7_Standard_operating_procedure/pph'], SOP_PROTOCOL_MAP
+  );
+  out.sop_pre_eclampsia = lookupCoded_(
+    rec['Section_7_Standard_operating_procedure/pre_eclampsia'], SOP_PROTOCOL_MAP
+  );
+  out.sop_eclampsia = lookupCoded_(
+    rec['Section_7_Standard_operating_procedure/eclampsia'], SOP_PROTOCOL_MAP
+  );
+  out.sop_sepsis = lookupCoded_(
+    rec['Section_7_Standard_operating_procedure/sepsis'], SOP_PROTOCOL_MAP
+  );
+  out.sop_newborn_management = lookupCoded_(
+    rec['Section_7_Standard_operating_procedure/newborn_mgt'], SOP_PROTOCOL_MAP
+  );
+  out.sop_rescuscitation = lookupCoded_(
+    rec['Section_7_Standard_operating_procedure/rescuscitation'], SOP_PROTOCOL_MAP
+  );
+  out.sop_handwashing = lookupCoded_(
+    rec['Section_7_Standard_operating_procedure/handwashing'], SOP_PROTOCOL_MAP
+  );
+  out.sop_referral = lookupCoded_(
+    rec['Section_7_Standard_operating_procedure/referral'], YES_NO_MAP
+  );
+  expandSelectMultiple_(
+    out,
+    rec['Section_7_Standard_operating_procedure/policy_a'],
+    'section_7_standard_operating_procedure_policy_a',
+    MATERNITY_POLICY_A_CHOICES
+  );
+  expandSelectMultiple_(
+    out,
+    rec['Section_7_Standard_operating_procedure/policy_b'],
+    'section_7_standard_operating_procedure_policy_b',
+    MATERNITY_POLICY_B_CHOICES
+  );
+  expandSelectMultiple_(
+    out,
+    rec['Section_7_Standard_operating_procedure/policy_c'],
+    'section_7_standard_operating_procedure_policy_c',
+    MATERNITY_POLICY_C_CHOICES
+  );
+  expandSelectMultiple_(
+    out,
+    rec['Section_7_Standard_operating_procedure/policy_d'],
+    'section_7_standard_operating_procedure_policy_d',
+    MATERNITY_POLICY_D_CHOICES
+  );
+  expandSelectMultiple_(
+    out,
     rec['services_offered/immunization'],
     'services_offered_immunization',
     MATERNITY_IMMUNIZATION_CHOICES
@@ -131,8 +245,48 @@ function inpatientMaternityPreferredHeaders_() {
     'delivery_reg_used', 'postnatal_register', 'postnatal_reg_used',
     'nutrition_register', 'newborn_register', 'newborn_register_used',
     'kmc_register', 'inpatient_maternity_file', 'newborn_file',
-    'services_offered_immunization_bcg', 'services_offered_immunization_hep_b',
-    'services_offered_immunization_opv', 'services_offered_immunization_none',
-  ];
+  ]
+    .concat(selectMultipleHeaders_(
+      'health_records_patient_file',
+      MATERNITY_PATIENT_FILE_CHOICES
+    ))
+    .concat([
+      'maternal_death_forms', 'perinatal_deaths_forms',
+      'maternal_review_forms', 'perinatal_review_forms', 'autopsy_forms',
+      'visual_privacy', 'auditory_privacy', 'patient_files_privacy',
+      'single_rooms', 'bed_space', 'barrier_procedure_rooms',
+      'training_emonc_guideline', 'training_support', 'training_nnr',
+      'training_pnc', 'training_ipc', 'training_newborn_infection',
+      'training_harmful_practices', 'training_communication',
+      'training_breastfeeding_001', 'training_companion',
+      'training_pain_relief', 'training_emotional_support', 'training_rmc',
+      'training_obstretric_care', 'training_newborn_care_001',
+      'training_abortion_care', 'training_family_planning', 'training_cardio',
+      'training_haemovigilance', 'training_stress_management',
+      'training_mpdsr_001',
+      'sop_intrapartum', 'sop_pph', 'sop_pre_eclampsia', 'sop_eclampsia',
+      'sop_sepsis', 'sop_newborn_management', 'sop_rescuscitation',
+      'sop_handwashing', 'sop_referral',
+    ])
+    .concat(selectMultipleHeaders_(
+      'section_7_standard_operating_procedure_policy_a',
+      MATERNITY_POLICY_A_CHOICES
+    ))
+    .concat(selectMultipleHeaders_(
+      'section_7_standard_operating_procedure_policy_b',
+      MATERNITY_POLICY_B_CHOICES
+    ))
+    .concat(selectMultipleHeaders_(
+      'section_7_standard_operating_procedure_policy_c',
+      MATERNITY_POLICY_C_CHOICES
+    ))
+    .concat(selectMultipleHeaders_(
+      'section_7_standard_operating_procedure_policy_d',
+      MATERNITY_POLICY_D_CHOICES
+    ))
+    .concat(selectMultipleHeaders_(
+      'services_offered_immunization',
+      MATERNITY_IMMUNIZATION_CHOICES
+    ));
 }
 
