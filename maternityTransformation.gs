@@ -253,6 +253,114 @@ function transformInpatientMaternityRecord_(rec) {
   out.infrastructure_waiting_area = lookupCoded_(
     rec['Section_9_Infrastructure/waiting_area'], YES_NO_MAP
   );
+  out.infrastructure_benches = lookupCoded_(
+    rec['Section_9_Infrastructure/benches'], YES_NO_MAP
+  );
+  out.infrastructure_ventilation = lookupCoded_(
+    rec['Section_9_Infrastructure/ventilation'], YES_NO_MAP
+  );
+  out.infrastructure_maintenance = lookupCoded_(
+    rec['Section_9_Infrastructure/maintenance'], YES_NO_MAP
+  );
+  out.infrastructure_material = lookupCoded_(
+    rec['Section_9_Infrastructure/material'], YES_NO_MAP
+  );
+  out.infrastructure_structures = lookupCoded_(
+    rec['Section_9_Infrastructure/structures'], YES_NO_MAP
+  );
+  out.infrastructure_lighting = lookupCoded_(
+    rec['Section_9_Infrastructure/lighting'], YES_NO_MAP
+  );
+  out.infrastructure_fan = lookupCoded_(
+    rec['Section_9_Infrastructure/fan'], YES_NO_MAP
+  );
+  out.infrastructure_rooms = toIntegerOrBlank_(rec['Section_9_Infrastructure/rooms']);
+  out.Infrastructure_beds_001 = lookupCoded_(
+    rec['Section_9_Infrastructure/beds_001'], YES_NO_MAP
+  );
+  out.infrastructure_access = lookupCoded_(
+    rec['Section_9_Infrastructure/access'], YES_NO_MAP
+  );
+  out.infrastructure_isolate = lookupCoded_(
+    rec['Section_9_Infrastructure/isolate'], YES_NO_MAP
+  );
+  out.infrastructure_extinguishers = lookupCoded_(
+    rec['Section_9_Infrastructure/extinguishers'], YES_NO_MAP
+  );
+  out.infrastructure_cabinets = lookupCoded_(
+    rec['Section_9_Infrastructure/cabinets'], YES_NO_MAP
+  );
+  out.infrastructure_signs = lookupCoded_(
+    rec['Section_9_Infrastructure/signs'], YES_NO_MAP
+  );
+  out['infrastructure/charter'] = lookupCoded_(
+    rec['Section_9_Infrastructure/charter'], YES_NO_MAP
+  );
+  out.labour_area = lookupCoded_(
+    rec['Section_9_Infrastructure/labour_area'], MATERNITY_LABOUR_AREA_PRIVACY_MAP
+  );
+  out['Infrastructure/childbirth_area'] = lookupCoded_(
+    rec['Section_9_Infrastructure/childbirth_area'],
+    MATERNITY_CHILDBIRTH_AREA_PRIVACY_MAP
+  );
+  out.recovery_room = lookupCoded_(
+    rec['Section_9_Infrastructure/recovery_room'], YES_NO_MAP
+  );
+  out.resuscitation_area = lookupCoded_(
+    rec['Section_9_Infrastructure/resus_area'], YES_NO_MAP
+  );
+  out.temperature_documented = lookupCoded_(
+    rec['Section_9_Infrastructure/temperature'], YES_NO_MAP
+  );
+  out.draught_free = lookupCoded_(
+    rec['Section_9_Infrastructure/draught'], YES_NO_MAP
+  );
+  expandSelectMultiple_(
+    out,
+    rec['Section_9_Infrastructure/education'],
+    'section_9_infrastructure_education',
+    MATERNITY_EDUCATION_CHOICES
+  );
+  out.infrastructure_dust = lookupCoded_(
+    rec['Section_9_Infrastructure/dust'], YES_NO_MAP
+  );
+  out.equipment_incubator = lookupCoded_(
+    rec['Section_10_Equipment/incubators'], MATERNITY_INCUBATOR_MAP
+  );
+  out.equipment_ambubags = lookupCoded_(
+    rec['Section_10_Equipment/ambubags'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out['equipment/vd_kits'] = lookupCoded_(
+    rec['Section_10_Equipment/vd_kits'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out['equipment/obstetric'] = lookupCoded_(
+    rec['Section_10_Equipment/obstetric'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out['equipment/preclampsia'] = lookupCoded_(
+    rec['Section_10_Equipment/preclampsia'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out['equipment/resuscitation_kits'] = lookupCoded_(
+    rec['Section_10_Equipment/resus_kits'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out['equipment/pharyngeal'] = lookupCoded_(
+    rec['Section_10_Equipment/pharyngeal'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.equipment_glucometer = lookupCoded_(
+    rec['Section_10_Equipment/glucometer'], EQUIP_FUNCTIONAL_MAP
+  );
+  out.equipment_ultrasound_001 = lookupCoded_(
+    rec['Section_10_Equipment/ultrasound_001'], EQUIP_FUNCTIONAL_MAP
+  );
+  out.equipment_oximeter = lookupCoded_(
+    rec['Section_10_Equipment/oximeter'], EQUIP_FUNCTIONAL_MAP
+  );
+  out.equipment_exam_light = lookupCoded_(
+    rec['Section_10_Equipment/exam_light'], EQUIP_FUNCTIONAL_MAP
+  );
+  out.equipment_fotoscopes = toIntegerOrBlank_(
+    rec['Section_10_Equipment/fetoscopes']
+  );
+  out.equipment_doppler = toIntegerOrBlank_(rec['Section_10_Equipment/doppler']);
   expandSelectMultiple_(
     out,
     rec['services_offered/immunization'],
@@ -333,6 +441,28 @@ function inpatientMaternityPreferredHeaders_() {
       'wash_accessible', 'wash_gender_separated', 'wash_menstrual',
       'wash_no_toilets', 'wash_labour', 'infrastructure_triage',
       'infrastructure_waiting_area',
+    ])
+    .concat([
+      'infrastructure_benches', 'infrastructure_ventilation',
+      'infrastructure_maintenance', 'infrastructure_material',
+      'infrastructure_structures', 'infrastructure_lighting',
+      'infrastructure_fan', 'infrastructure_rooms', 'Infrastructure_beds_001',
+      'infrastructure_access', 'infrastructure_isolate',
+      'infrastructure_extinguishers', 'infrastructure_cabinets',
+      'infrastructure_signs', 'infrastructure/charter', 'labour_area',
+      'Infrastructure/childbirth_area', 'recovery_room', 'resuscitation_area',
+      'temperature_documented', 'draught_free',
+    ])
+    .concat(selectMultipleHeaders_(
+      'section_9_infrastructure_education',
+      MATERNITY_EDUCATION_CHOICES
+    ))
+    .concat([
+      'infrastructure_dust', 'equipment_incubator', 'equipment_ambubags',
+      'equipment/vd_kits', 'equipment/obstetric', 'equipment/preclampsia',
+      'equipment/resuscitation_kits', 'equipment/pharyngeal',
+      'equipment_glucometer', 'equipment_ultrasound_001', 'equipment_oximeter',
+      'equipment_exam_light', 'equipment_fotoscopes', 'equipment_doppler',
     ])
     .concat(selectMultipleHeaders_(
       'services_offered_immunization',

@@ -291,6 +291,34 @@ const MATERNITY_BATHROOM_CLEANING_MAP = {
   4: 'They are not cleaned routinely with disinfectant solution',
 };
 
+const MATERNITY_LABOUR_AREA_PRIVACY_MAP = {
+  1: 'All labour beds have privacy',
+  2: 'Some labour beds have privacy',
+  3: 'No beds have privacy',
+};
+
+const MATERNITY_CHILDBIRTH_AREA_PRIVACY_MAP = {
+  1: 'All delivery beds have privacy',
+  2: 'Some delivery beds have privacy',
+  3: 'No delivery have privacy',
+};
+
+const MATERNITY_EDUCATION_CHOICES = [
+  { code: '1', slug: 'breastfeeding' },
+  { code: '2', slug: 'neonatal_danger_signs' },
+  { code: '3', slug: 'maternal_postpartum_danger_signs' },
+  { code: '4', slug: 'family_planning_options' },
+  { code: '5', slug: 'hygiene' },
+  { code: '6', slug: 'immunization' },
+  { code: '7', slug: 'none' },
+];
+
+const MATERNITY_INCUBATOR_MAP = {
+  1: 'At least one, functional',
+  2: 'At least one, non-functional',
+  3: 'None',
+};
+
 const MATERNITY_POLICY_A_CHOICES = [
   { code: '1', slug: 'pain_management_in_labour' },
   { code: '2', slug: 'breastfeeding' },
@@ -849,6 +877,42 @@ const INPATIENT_MATERNITY_SOURCE_KEYS = makeKeySet_([
   'Section_7_Standard_operating_procedure/checklist',
   'Section_9_Infrastructure/triage',
   'Section_9_Infrastructure/waiting_area',
+  'Section_9_Infrastructure/access',
+  'Section_9_Infrastructure/benches',
+  'Section_9_Infrastructure/beds_001',
+  'Section_9_Infrastructure/cabinets',
+  'Section_9_Infrastructure/charter',
+  'Section_9_Infrastructure/childbirth_area',
+  'Section_9_Infrastructure/draught',
+  'Section_9_Infrastructure/dust',
+  'Section_9_Infrastructure/education',
+  'Section_9_Infrastructure/extinguishers',
+  'Section_9_Infrastructure/fan',
+  'Section_9_Infrastructure/isolate',
+  'Section_9_Infrastructure/labour_area',
+  'Section_9_Infrastructure/lighting',
+  'Section_9_Infrastructure/maintenance',
+  'Section_9_Infrastructure/material',
+  'Section_9_Infrastructure/recovery_room',
+  'Section_9_Infrastructure/resus_area',
+  'Section_9_Infrastructure/rooms',
+  'Section_9_Infrastructure/signs',
+  'Section_9_Infrastructure/structures',
+  'Section_9_Infrastructure/temperature',
+  'Section_9_Infrastructure/ventilation',
+  'Section_10_Equipment/ambubags',
+  'Section_10_Equipment/doppler',
+  'Section_10_Equipment/exam_light',
+  'Section_10_Equipment/fetoscopes',
+  'Section_10_Equipment/glucometer',
+  'Section_10_Equipment/incubators',
+  'Section_10_Equipment/obstetric',
+  'Section_10_Equipment/oximeter',
+  'Section_10_Equipment/pharyngeal',
+  'Section_10_Equipment/preclampsia',
+  'Section_10_Equipment/resus_kits',
+  'Section_10_Equipment/ultrasound_001',
+  'Section_10_Equipment/vd_kits',
   'services_offered/anomalies',
   'services_offered/antibiotics',
   'services_offered/antibiotics_001',
