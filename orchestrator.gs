@@ -150,16 +150,7 @@ function fullRefreshAllForms() {
           form.sheetName
         );
 
-      const sheet =
-        spreadsheet.getSheetByName(
-          form.sheetName
-        );
-
-      if (sheet) {
-        sheet.clearContents();
-      }
-
-      const result = appendNewRecordsToSheet(
+      const result = replaceSheetRecords(
         spreadsheet,
         form.sheetName,
         records,
@@ -171,7 +162,9 @@ function fullRefreshAllForms() {
         form.sheetName +
         '": wrote ' +
         result.appended +
-        ' row(s).'
+        ' row(s) across ' +
+        result.columns +
+        ' column(s).'
       );
     } catch (err) {
       Logger.log(
