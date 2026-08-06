@@ -253,6 +253,30 @@ const MATERNITY_BARRIER_MAP = {
   3: 'Visual barriers in place for NO exam spaces',
 };
 
+const MATERNITY_DISPOSABLE_TOWELS_MAP = {
+  1: 'Present in ALL service areas',
+  2: 'Present in some service areas',
+  3: 'Present in no service areas',
+};
+
+const MATERNITY_LATRINE_MAP = {
+  1: 'Flush/pour flush to piped sewer system, septic tank',
+  2: 'Pit latrine (ventilated improved pit latrine (VIP)) with slab',
+  3: 'Pit latrine without slab/open pit',
+  4: 'Composting toilet',
+  5: 'Bucket',
+  6: 'Hanging toilet/hanging latrine',
+  7: 'Other, specify',
+  8: 'None',
+};
+
+const MATERNITY_BATHROOM_CLEANING_MAP = {
+  1: 'Daily AND as necessary',
+  2: 'Daily',
+  3: 'ONLY when they are visibly dirty',
+  4: 'They are not cleaned routinely with disinfectant solution',
+};
+
 const MATERNITY_POLICY_A_CHOICES = [
   { code: '1', slug: 'pain_management_in_labour' },
   { code: '2', slug: 'breastfeeding' },
@@ -803,9 +827,12 @@ const INPATIENT_MATERNITY_SOURCE_KEYS = makeKeySet_([
   'Section_7_Standard_operating_procedure/policy_d',
   'Section_7_Standard_operating_procedure/pph',
   'Section_7_Standard_operating_procedure/pre_eclampsia',
+  'Section_7_Standard_operating_procedure/procure',
   'Section_7_Standard_operating_procedure/referral',
   'Section_7_Standard_operating_procedure/rescuscitation',
   'Section_7_Standard_operating_procedure/sepsis',
+  'Section_7_Standard_operating_procedure/sop',
+  'Section_7_Standard_operating_procedure/checklist',
   'services_offered/anomalies',
   'services_offered/antibiotics',
   'services_offered/antibiotics_001',
@@ -867,6 +894,24 @@ const INPATIENT_MATERNITY_SOURCE_KEYS = makeKeySet_([
   'training/rmc',
   'training/stress_mgt',
   'training/support',
+  'wash/accessible',
+  'wash/bathrooms',
+  'wash/clean',
+  'wash/disposable',
+  'wash/disposal',
+  'wash/drainage',
+  'wash/gender',
+  'wash/hand_washing',
+  'wash/labour',
+  'wash/latrine',
+  'wash/leak_proof',
+  'wash/menstrual',
+  'wash/no_toilets',
+  'wash/sharp',
+  'wash/source',
+  'wash/station',
+  'wash/visible',
+  'wash/water_freq',
 ]);
 
 /**

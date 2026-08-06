@@ -189,6 +189,15 @@ function transformInpatientMaternityRecord_(rec) {
   out.sop_referral = lookupCoded_(
     rec['Section_7_Standard_operating_procedure/referral'], YES_NO_MAP
   );
+  out.sop_procurement = lookupCoded_(
+    rec['Section_7_Standard_operating_procedure/procure'], YES_NO_MAP
+  );
+  out.sop_ultrasound = lookupCoded_(
+    rec['Section_7_Standard_operating_procedure/sop'], YES_NO_MAP
+  );
+  out.sop_checklist = lookupCoded_(
+    rec['Section_7_Standard_operating_procedure/checklist'], YES_NO_MAP
+  );
   expandSelectMultiple_(
     out,
     rec['Section_7_Standard_operating_procedure/policy_a'],
@@ -213,6 +222,28 @@ function transformInpatientMaternityRecord_(rec) {
     'section_7_standard_operating_procedure_policy_d',
     MATERNITY_POLICY_D_CHOICES
   );
+  out.wash_source = lookupCoded_(rec['wash/source'], WATER_SOURCE_MAP);
+  out.wash_water_frequency = lookupCoded_(rec['wash/water_freq'], YES_NO_MAP);
+  out.wash_hand_washing = lookupCoded_(rec['wash/hand_washing'], YES_NO_MAP);
+  out.wash_drainage = lookupCoded_(rec['wash/drainage'], YES_NO_MAP);
+  out.wash_disposable_towels = lookupCoded_(
+    rec['wash/disposable'], MATERNITY_DISPOSABLE_TOWELS_MAP
+  );
+  out.wash_disposal = lookupCoded_(rec['wash/disposal'], WASTE_MANAGEMENT_MAP);
+  out.wash_leak_proof = lookupCoded_(rec['wash/leak_proof'], YES_NO_MAP);
+  out.wash_sharp = lookupCoded_(rec['wash/sharp'], YES_NO_MAP);
+  out.wash_visible = lookupCoded_(rec['wash/visible'], YES_NO_MAP);
+  out.wash_latrine = lookupCoded_(rec['wash/latrine'], MATERNITY_LATRINE_MAP);
+  out.wash_station = lookupCoded_(rec['wash/station'], YES_NO_MAP);
+  out.wash_bathrooms = lookupCoded_(
+    rec['wash/bathrooms'], MATERNITY_BATHROOM_CLEANING_MAP
+  );
+  out.wash_clean = lookupCoded_(rec['wash/clean'], YES_NO_MAP);
+  out.wash_accessible = lookupCoded_(rec['wash/accessible'], YES_NO_MAP);
+  out.wash_gender = lookupCoded_(rec['wash/gender'], YES_NO_MAP);
+  out.wash_menstrual = lookupCoded_(rec['wash/menstrual'], YES_NO_MAP);
+  out.wash_no_toilets = rec['wash/no_toilets'] == null ? '' : rec['wash/no_toilets'];
+  out.wash_labour = lookupCoded_(rec['wash/labour'], YES_NO_MAP);
   expandSelectMultiple_(
     out,
     rec['services_offered/immunization'],
@@ -266,7 +297,8 @@ function inpatientMaternityPreferredHeaders_() {
       'training_mpdsr_001',
       'sop_intrapartum', 'sop_pph', 'sop_pre_eclampsia', 'sop_eclampsia',
       'sop_sepsis', 'sop_newborn_management', 'sop_rescuscitation',
-      'sop_handwashing', 'sop_referral',
+      'sop_handwashing', 'sop_referral', 'sop_procurement', 'sop_ultrasound',
+      'sop_checklist',
     ])
     .concat(selectMultipleHeaders_(
       'section_7_standard_operating_procedure_policy_a',
@@ -284,6 +316,13 @@ function inpatientMaternityPreferredHeaders_() {
       'section_7_standard_operating_procedure_policy_d',
       MATERNITY_POLICY_D_CHOICES
     ))
+    .concat([
+      'wash_source', 'wash_water_frequency', 'wash_hand_washing',
+      'wash_drainage', 'wash_disposable_towels', 'wash_disposal',
+      'wash_leak_proof', 'wash_sharp', 'wash_visible', 'wash_latrine',
+      'wash_station', 'wash_bathrooms', 'wash_clean', 'wash_accessible',
+      'wash_gender', 'wash_menstrual', 'wash_no_toilets', 'wash_labour',
+    ])
     .concat(selectMultipleHeaders_(
       'services_offered_immunization',
       MATERNITY_IMMUNIZATION_CHOICES
