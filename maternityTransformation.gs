@@ -477,6 +477,115 @@ function transformInpatientMaternityRecord_(rec) {
   out.labour_ward_dexamethasone = lookupCoded_(
     labourWardValue_(rec, 'dexamethasone'), NEWBORN_ADMISSION_AVAIL_MAP
   );
+  out.labour_ward_latex = lookupCoded_(
+    labourWardValue_(rec, 'latex'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_sterile = lookupCoded_(
+    labourWardValue_(rec, 'sterile'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_masks = lookupCoded_(
+    labourWardValue_(rec, 'masks'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_aprons = lookupCoded_(
+    labourWardValue_(rec, 'aprons'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out['labour_ward/iv'] = lookupCoded_(
+    labourWardValue_(rec, 'iv'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_malaria_001 = lookupCoded_(
+    labourWardValue_(rec, 'malaria_001'), MATERNITY_LAB_UNIT_AVAIL_MAP
+  );
+  out.labour_ward_syphilis = lookupCoded_(
+    labourWardValue_(rec, 'syphilis', 'syphillis'), MATERNITY_LAB_UNIT_AVAIL_MAP
+  );
+  out.labour_ward_hiv = lookupCoded_(
+    labourWardValue_(rec, 'hiv'), MATERNITY_LAB_UNIT_AVAIL_MAP
+  );
+  out.labour_ward_glucose_001 = lookupCoded_(
+    labourWardValue_(rec, 'glucose_001'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_ketone = lookupCoded_(
+    labourWardValue_(rec, 'ketone'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out['labour_ward/glucometer_001'] = lookupCoded_(
+    labourWardValue_(rec, 'glucometer_001'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+
+  out.based_practices_ultrasound_002 = lookupCoded_(
+    basedPracticesValue_(rec, 'ultrasound_002'), YES_NO_MAP
+  );
+  out.based_practices_calibration = lookupCoded_(
+    basedPracticesValue_(rec, 'calibration'), YES_NO_MAP
+  );
+  out.based_practices_documentation = lookupCoded_(
+    basedPracticesValue_(rec, 'documentation'), ALWAYS_SOMETIMES_NEVER_MAP
+  );
+  out.based_practices_consent_001 = lookupCoded_(
+    basedPracticesValue_(rec, 'consent_001'), ALWAYS_SOMETIMES_NEVER_MAP
+  );
+  out.based_practices_meeting = lookupCoded_(
+    basedPracticesValue_(rec, 'meeting'), YES_NO_MAP
+  );
+  out.based_practices_arrival = lookupCoded_(
+    basedPracticesValue_(rec, 'arrival'), ALWAYS_SOMETIMES_NEVER_MAP
+  );
+  expandSelectMultiple_(
+    out,
+    basedPracticesRaw_(rec, 'triage_001'),
+    'based_practices_triage_001',
+    MATERNITY_TRIAGE_ASSESSMENT_CHOICES
+  );
+  out.based_practices_guide = lookupCoded_(
+    basedPracticesValue_(rec, 'guide'), ALWAYS_SOMETIMES_NEVER_MAP
+  );
+  expandSelectMultiple_(
+    out,
+    basedPracticesRaw_(rec, 'charts'),
+    'based_practices_charts',
+    MATERNITY_CHARTS_CHOICES
+  );
+  out.based_practices_companion_001 = lookupCoded_(
+    basedPracticesValue_(rec, 'companion_001'), ALWAYS_SOMETIMES_NEVER_MAP
+  );
+  out.based_practices_encourage = lookupCoded_(
+    basedPracticesValue_(rec, 'encourage'), ALWAYS_SOMETIMES_NEVER_MAP
+  );
+  out.based_practices_delivery_001 = lookupCoded_(
+    basedPracticesValue_(rec, 'delivery_001'), ALWAYS_SOMETIMES_NEVER_MAP
+  );
+  out['based_practices/information'] = lookupCoded_(
+    basedPracticesValue_(rec, 'information'), ALWAYS_SOMETIMES_NEVER_MAP
+  );
+  expandSelectMultiple_(
+    out,
+    basedPracticesRaw_(rec, 'counselling'),
+    'based_practices_counselling',
+    MATERNITY_LABOUR_COUNSELLING_CHOICES
+  );
+  out['based_practices/svd'] = toIntegerOrBlank_(
+    basedPracticesValue_(rec, 'svd')
+  );
+  out.based_practices_roaming = lookupCoded_(
+    basedPracticesValue_(rec, 'roaming'), ALWAYS_SOMETIMES_NEVER_MAP
+  );
+  out.based_practices_support_001 = lookupCoded_(
+    basedPracticesValue_(rec, 'support_001'), ALWAYS_SOMETIMES_NEVER_MAP
+  );
+  out.based_practices_vital_signs = lookupCoded_(
+    basedPracticesValue_(rec, 'vital_signs'), ALWAYS_SOMETIMES_NEVER_MAP
+  );
+  out.based_practices_pnc_001 = lookupCoded_(
+    basedPracticesValue_(rec, 'pnc_001'), ALWAYS_SOMETIMES_NEVER_MAP
+  );
+  expandSelectMultiple_(
+    out,
+    basedPracticesRaw_(rec, 'discharge'),
+    'based_practices_discharge',
+    MATERNITY_DISCHARGE_COUNSELLING_CHOICES
+  );
+  out.based_practices_grief = lookupCoded_(
+    basedPracticesValue_(rec, 'grief'), ALWAYS_SOMETIMES_NEVER_MAP
+  );
   expandSelectMultiple_(
     out,
     rec['services_offered/immunization'],
@@ -490,12 +599,46 @@ function transformInpatientMaternityRecord_(rec) {
 /**
  * Read a labour-ward commodity value, tolerating both the capitalized and
  * lowercase group names used across deployed maternity form versions.
+ * Accepts one or more field-name spellings (some fields are misspelled in
+ * only one form version, e.g. syphilis / syphillis).
  */
-function labourWardValue_(rec, field) {
-  return firstValue_(rec, [
-    'Section_11_Commodit_cific_to_Labour_Ward/' + field,
-    'Section_11_Commodit_cific_to_labour_ward/' + field,
-  ]);
+function labourWardValue_(rec) {
+  const fields = Array.prototype.slice.call(arguments, 1);
+  const keys = [];
+  fields.forEach(function (field) {
+    keys.push('Section_11_Commodit_cific_to_Labour_Ward/' + field);
+    keys.push('Section_11_Commodit_cific_to_labour_ward/' + field);
+  });
+  return firstValue_(rec, keys);
+}
+
+/** Group-name variants used by Section 12 across deployed form versions. */
+var MATERNITY_BASED_PRACTICES_PREFIXES = [
+  'Section_12_Adherenc_ence_based_Practices/',
+  'Section_12_Adherenc_ence_Based_Practices/',
+  'Section_12_Adheranc_ence_based_practices/',
+];
+
+/** Read a Section 12 evidence-based-practice value across group-name variants. */
+function basedPracticesValue_(rec, field) {
+  return firstValue_(
+    rec,
+    MATERNITY_BASED_PRACTICES_PREFIXES.map(function (prefix) {
+      return prefix + field;
+    })
+  );
+}
+
+/**
+ * Raw Section 12 value across group-name variants, preserving undefined when
+ * the field is absent so select_multiple expansion stays blank (not all-No).
+ */
+function basedPracticesRaw_(rec, field) {
+  for (var i = 0; i < MATERNITY_BASED_PRACTICES_PREFIXES.length; i++) {
+    var key = MATERNITY_BASED_PRACTICES_PREFIXES[i] + field;
+    if (Object.prototype.hasOwnProperty.call(rec, key)) return rec[key];
+  }
+  return undefined;
 }
 
 function inpatientMaternityPreferredHeaders_() {
@@ -620,7 +763,41 @@ function inpatientMaternityPreferredHeaders_() {
       'labour_ward_tranexamic', 'labour_ward_magnesium', 'labour_ward_calcium',
       'labour_ward_hydralazine', 'labour_ward_saline', 'labour_ward_methyldopa',
       'labour_ward_dexamethasone',
+      'labour_ward_latex', 'labour_ward_sterile', 'labour_ward_masks',
+      'labour_ward_aprons', 'labour_ward/iv', 'labour_ward_malaria_001',
+      'labour_ward_syphilis', 'labour_ward_hiv', 'labour_ward_glucose_001',
+      'labour_ward_ketone', 'labour_ward/glucometer_001',
+      'based_practices_ultrasound_002', 'based_practices_calibration',
+      'based_practices_documentation', 'based_practices_consent_001',
+      'based_practices_meeting', 'based_practices_arrival',
     ])
+    .concat(selectMultipleHeaders_(
+      'based_practices_triage_001',
+      MATERNITY_TRIAGE_ASSESSMENT_CHOICES
+    ))
+    .concat(['based_practices_guide'])
+    .concat(selectMultipleHeaders_(
+      'based_practices_charts',
+      MATERNITY_CHARTS_CHOICES
+    ))
+    .concat([
+      'based_practices_companion_001', 'based_practices_encourage',
+      'based_practices_delivery_001', 'based_practices/information',
+    ])
+    .concat(selectMultipleHeaders_(
+      'based_practices_counselling',
+      MATERNITY_LABOUR_COUNSELLING_CHOICES
+    ))
+    .concat([
+      'based_practices/svd', 'based_practices_roaming',
+      'based_practices_support_001', 'based_practices_vital_signs',
+      'based_practices_pnc_001',
+    ])
+    .concat(selectMultipleHeaders_(
+      'based_practices_discharge',
+      MATERNITY_DISCHARGE_COUNSELLING_CHOICES
+    ))
+    .concat(['based_practices_grief'])
     .concat(selectMultipleHeaders_(
       'services_offered_immunization',
       MATERNITY_IMMUNIZATION_CHOICES
