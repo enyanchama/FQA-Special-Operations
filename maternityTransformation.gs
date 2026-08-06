@@ -233,7 +233,10 @@ function transformInpatientMaternityRecord_(rec) {
   out.wash_leak_proof = lookupCoded_(rec['wash/leak_proof'], YES_NO_MAP);
   out.wash_sharp = lookupCoded_(rec['wash/sharp'], YES_NO_MAP);
   out.wash_visible = lookupCoded_(rec['wash/visible'], YES_NO_MAP);
-  out.wash_latrine = lookupCoded_(rec['wash/latrine'], MATERNITY_LATRINE_MAP);
+  const latrineMap = rec['__version__'] === MATERNITY_LEGACY_LATRINE_VERSION
+    ? MATERNITY_LEGACY_LATRINE_MAP
+    : MATERNITY_LATRINE_MAP;
+  out.wash_latrine = lookupCoded_(rec['wash/latrine'], latrineMap);
   out.wash_station = lookupCoded_(rec['wash/station'], YES_NO_MAP);
   out.wash_bathrooms = lookupCoded_(
     rec['wash/bathrooms'], MATERNITY_BATHROOM_CLEANING_MAP

@@ -270,6 +270,20 @@ const MATERNITY_LATRINE_MAP = {
   8: 'None',
 };
 
+/** The first deployed maternity form used a different latrine choice list. */
+const MATERNITY_LEGACY_LATRINE_VERSION = 'v4g3Zpg6gWRkdbSu5zqafH';
+const MATERNITY_LEGACY_LATRINE_MAP = {
+  1: 'Flush toilet',
+  2: 'Ventilated improved pit latrine (VIP)',
+  3: 'Pit latrine with slab',
+  4: 'Pit latrine without slab/open pit',
+  5: 'Composting toilet',
+  6: 'Bucket',
+  7: 'Hanging toilet/hanging latrine',
+  8: 'Other, specify',
+  9: 'None',
+};
+
 const MATERNITY_BATHROOM_CLEANING_MAP = {
   1: 'Daily AND as necessary',
   2: 'Daily',
