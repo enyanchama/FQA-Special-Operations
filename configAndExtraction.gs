@@ -942,15 +942,23 @@ function assignPassthrough_(out, rec, consumedKeys) {
   });
 }
 
+/**
+ * Token resolution order: the KOBO_API_TOKEN script property, then a
+ * KOBO_API_TOKEN_OVERRIDE constant declared in an uncommitted Apps Script file.
+ */
 function getApiToken() {
-  const token = PropertiesService.getScriptProperties().getProperty('KOBO_API_TOKEN');
-  if (!token) {
-    throw new Error(
-      'Missing Script Property KOBO_API_TOKEN. ' +
-      'Set it under Project Settings → Script properties.'
-    );
+  const property = PropertiesService.getScriptProperties().getProperty('KOBO_API_TOKEN');
+  if (property) return property;
+
+  if (typeof KOBO_API_TOKEN_OVERRIDE === 'string' && KOBO_API_TOKEN_OVERRIDE !== '') {
+    return KOBO_API_TOKEN_OVERRIDE;
   }
-  return token;
+
+  throw new Error(
+    'No Kobo API token found. Set the KOBO_API_TOKEN script property under ' +
+    'Project Settings → Script properties, or declare KOBO_API_TOKEN_OVERRIDE ' +
+    'in a separate Apps Script file.'
+  );
 }
 
 function isTransientKoboStatus_(code) {
