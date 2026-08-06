@@ -361,6 +361,122 @@ function transformInpatientMaternityRecord_(rec) {
     rec['Section_10_Equipment/fetoscopes']
   );
   out.equipment_doppler = toIntegerOrBlank_(rec['Section_10_Equipment/doppler']);
+  out.equipment_vacuum = lookupCoded_(rec['Section_10_Equipment/vacuum'], YES_NO_MAP);
+  out.equipment_bed = toIntegerOrBlank_(rec['Section_10_Equipment/beds_002']);
+  out.equipment_suction = lookupCoded_(
+    rec['Section_10_Equipment/suction'], EQUIP_FUNCTIONAL_MAP
+  );
+  out.equipment_catheters = lookupCoded_(
+    rec['Section_10_Equipment/catheters'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.equipment_bulbs = lookupCoded_(
+    rec['Section_10_Equipment/bulbs'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.equipment_adult = lookupCoded_(
+    rec['Section_10_Equipment/adult'], EQUIP_FUNCTIONAL_MAP
+  );
+  out.equipment_infant = lookupCoded_(
+    rec['Section_10_Equipment/infant'], EQUIP_FUNCTIONAL_MAP
+  );
+  out.equipment_stadiometer = lookupCoded_(
+    rec['Section_10_Equipment/stadiometer'], YES_NO_MAP
+  );
+  out.equipment_thermometer = lookupCoded_(
+    rec['Section_10_Equipment/thermometers'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.equipment_stethoscope = lookupCoded_(
+    rec['Section_10_Equipment/stethoscopes'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.equipment_laryngoscope = lookupCoded_(
+    rec['Section_10_Equipment/laryngoscope'], EQUIP_FUNCTIONAL_MAP
+  );
+  out.equipment_apparatus = lookupCoded_(
+    rec['Section_10_Equipment/apparatus'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out['equipment ctg_001'] = lookupCoded_(
+    rec['Section_10_Equipment/ctg_001'], EQUIP_FUNCTIONAL_MAP
+  );
+  out.equipment_towels = lookupCoded_(rec['Section_10_Equipment/towels'], YES_NO_MAP);
+  out.equipment_quantity = lookupCoded_(
+    rec['Section_10_Equipment/quantity'], YES_NO_MAP
+  );
+  out['equipment/oxygen'] = lookupCoded_(
+    rec['Section_10_Equipment/oxygen'], WATER_SOURCE_MAP
+  );
+  out['equipment/o2'] = lookupCoded_(rec['Section_10_Equipment/o2'], YES_NO_MAP);
+  expandSelectMultiple_(
+    out,
+    rec['Section_10_Equipment/supplies'],
+    'section_10_equipment_supplies',
+    MATERNITY_SUPPLIES_CHOICES
+  );
+  out.equipment_storage = lookupCoded_(rec['Section_10_Equipment/storage'], YES_NO_MAP);
+  out.equipment_milk_bank = lookupCoded_(
+    rec['Section_10_Equipment/milk_bank'], YES_NO_MAP
+  );
+  out.equipment_refrigerator = lookupCoded_(
+    rec['Section_10_Equipment/refrigerator'], WATER_SOURCE_MAP
+  );
+  out.equipment_resuscitaire = lookupCoded_(
+    rec['Section_10_Equipment/resuscitaire'], WATER_SOURCE_MAP
+  );
+  expandSelectMultiple_(
+    out,
+    rec['Section_10_Equipment/em_tray'],
+    'section_10_equipment_em_tray',
+    MATERNITY_EM_TRAY_CHOICES
+  );
+  expandSelectMultiple_(
+    out,
+    rec['Section_10_Equipment/equipment'],
+    'section_10_equipment_equipment',
+    MATERNITY_RESUS_CART_CHOICES
+  );
+  out.labour_ward_tetracycline = lookupCoded_(
+    labourWardValue_(rec, 'tetracycline'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_chlorhexidine = lookupCoded_(
+    labourWardValue_(rec, 'chlorhexidine'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_vit_k = lookupCoded_(
+    labourWardValue_(rec, 'vit_k'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_bcg = lookupCoded_(
+    labourWardValue_(rec, 'bcg'), MATERNITY_BCG_AVAIL_MAP
+  );
+  out.labour_ward_hepb = lookupCoded_(
+    labourWardValue_(rec, 'hepb'), MATERNITY_HEPB_AVAIL_MAP
+  );
+  out.labour_ward_oxytocin = lookupCoded_(
+    labourWardValue_(rec, 'oxytocin'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_hsc = lookupCoded_(
+    labourWardValue_(rec, 'hsc'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_misoprostol = lookupCoded_(
+    labourWardValue_(rec, 'misoprostol'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_tranexamic = lookupCoded_(
+    labourWardValue_(rec, 'tranexamic'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_magnesium = lookupCoded_(
+    labourWardValue_(rec, 'magnesium'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_calcium = lookupCoded_(
+    labourWardValue_(rec, 'calcium'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_hydralazine = lookupCoded_(
+    labourWardValue_(rec, 'hydralazine'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_saline = lookupCoded_(
+    labourWardValue_(rec, 'saline'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_methyldopa = lookupCoded_(
+    labourWardValue_(rec, 'methyldopa'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.labour_ward_dexamethasone = lookupCoded_(
+    labourWardValue_(rec, 'dexamethasone'), NEWBORN_ADMISSION_AVAIL_MAP
+  );
   expandSelectMultiple_(
     out,
     rec['services_offered/immunization'],
@@ -369,6 +485,17 @@ function transformInpatientMaternityRecord_(rec) {
   );
 
   return out;
+}
+
+/**
+ * Read a labour-ward commodity value, tolerating both the capitalized and
+ * lowercase group names used across deployed maternity form versions.
+ */
+function labourWardValue_(rec, field) {
+  return firstValue_(rec, [
+    'Section_11_Commodit_cific_to_Labour_Ward/' + field,
+    'Section_11_Commodit_cific_to_labour_ward/' + field,
+  ]);
 }
 
 function inpatientMaternityPreferredHeaders_() {
@@ -463,6 +590,36 @@ function inpatientMaternityPreferredHeaders_() {
       'equipment/resuscitation_kits', 'equipment/pharyngeal',
       'equipment_glucometer', 'equipment_ultrasound_001', 'equipment_oximeter',
       'equipment_exam_light', 'equipment_fotoscopes', 'equipment_doppler',
+      'equipment_vacuum', 'equipment_bed', 'equipment_suction',
+      'equipment_catheters', 'equipment_bulbs', 'equipment_adult',
+      'equipment_infant', 'equipment_stadiometer', 'equipment_thermometer',
+      'equipment_stethoscope', 'equipment_laryngoscope', 'equipment_apparatus',
+      'equipment ctg_001', 'equipment_towels', 'equipment_quantity',
+      'equipment/oxygen', 'equipment/o2',
+    ])
+    .concat(selectMultipleHeaders_(
+      'section_10_equipment_supplies',
+      MATERNITY_SUPPLIES_CHOICES
+    ))
+    .concat([
+      'equipment_storage', 'equipment_milk_bank', 'equipment_refrigerator',
+      'equipment_resuscitaire',
+    ])
+    .concat(selectMultipleHeaders_(
+      'section_10_equipment_em_tray',
+      MATERNITY_EM_TRAY_CHOICES
+    ))
+    .concat(selectMultipleHeaders_(
+      'section_10_equipment_equipment',
+      MATERNITY_RESUS_CART_CHOICES
+    ))
+    .concat([
+      'labour_ward_tetracycline', 'labour_ward_chlorhexidine',
+      'labour_ward_vit_k', 'labour_ward_bcg', 'labour_ward_hepb',
+      'labour_ward_oxytocin', 'labour_ward_hsc', 'labour_ward_misoprostol',
+      'labour_ward_tranexamic', 'labour_ward_magnesium', 'labour_ward_calcium',
+      'labour_ward_hydralazine', 'labour_ward_saline', 'labour_ward_methyldopa',
+      'labour_ward_dexamethasone',
     ])
     .concat(selectMultipleHeaders_(
       'services_offered_immunization',
