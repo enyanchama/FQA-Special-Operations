@@ -1,4 +1,4 @@
-/** Inpatient Maternity cleaning, standardization, and calculated fields. */
+/** Inpatient Maternity transformation and preferred headers. */
 
 function transformInpatientMaternityRecord_(rec) {
   const out = {};

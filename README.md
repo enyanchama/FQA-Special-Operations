@@ -1,39 +1,33 @@
 # FQA Special Operations
 
-Google Apps Script pipeline for extracting QuIPS KoboToolbox submissions into
-Google Sheets and transforming each dataset independently.
+Google Apps Script pipeline that pulls QuIPS KoboToolbox submissions into Google Sheets and transforms each dataset independently.
 
-## Project structure
+## Files
 
-- `config.gs` — API/runtime settings and the form registry.
-- `dataExtraction.gs` — Kobo API access and raw staging-sheet loading only.
-- `newbornUnitTransformation.gs` — Newborn Unit transformations and headers.
-- `maternityTransformation.gs` — Inpatient Maternity transformations and headers.
-- `transformationUtils.gs` — shared transformation helpers.
-- `sharedMappings.gs` — shared coded-value and select-multiple mappings.
-- `sheetRepository.gs` — generic Google Sheets reads, writes, and validation.
-- `orchestrator.gs` — end-to-end pipeline coordination and triggers.
+| File | Responsibility |
+|---|---|
+| `configAndExtraction.gs` | Config, choice maps, Kobo fetch, shared helpers, sheet writes |
+| `newbornUnitTransformation.gs` | Newborn Unit transforms and preferred headers |
+| `maternityTransformation.gs` | Inpatient Maternity transforms and preferred headers |
+| `outpatientTransformation.gs` | Outpatient date transforms |
+| `labTransformation.gs` | Lab date transforms |
+| `operatingTheatreTransformation.gs` | Operating Theatre date transforms |
+| `pharmacyTransformation.gs` | Pharmacy date transforms |
+| `centralStoreTransformation.gs` | Central Store date transforms |
+| `facilityGeneralTransformation.gs` | Facility General date transforms |
+| `orchestrator.gs` | Form registry, `pullAllForms`, `fullRefreshAllForms`, routing |
 
-Raw data is stored in sheets prefixed with `_raw_`. Dataset transformations read
-from those staging sheets and rebuild the user-facing sheets, so extraction can
-be rerun without mixing API concerns with cleaning logic.
+## Behavior
 
-## Main functions
+- Transformed columns are written first in preferred order.
+- Raw Kobo fields not listed in each dataset’s `*_SOURCE_KEYS` pass through unchanged after the transformed columns.
+- `fullRefreshAllForms()` fetches and transforms before clearing a sheet.
+- `pullAllForms()` appends only new `_uuid` values.
+- Wide sheets grow automatically before writes.
 
-- `runFullPipeline()` / `fullRefreshAllForms()` — fully extract and transform.
-- `pullAllForms()` — incrementally stage new UUIDs, then rebuild outputs.
-- `extractAllKoboData()` — fully refresh raw staging only.
-- `extractLatestKoboData()` — incrementally update raw staging only.
-- `transformNewbornUnit()` — independently rebuild Newborn Unit.
-- `transformInpatientMaternity()` / `transformMaternity()` — independently
-  rebuild Inpatient Maternity.
+## Setup
 
-Set the `KOBO_API_TOKEN` Script Property before running extraction.
-
-## Adding a transformed dataset
-
-1. Add the Kobo asset and target sheet to `FORM_CONFIG`.
-2. Create `<dataset>Transformation.gs` with one public `transform<Dataset>()`
-   function and private record/header helpers.
-3. Add one dispatch case in `runDatasetTransformation_()`.
-4. Keep mappings local to the dataset unless another transform shares them.
+1. Paste each `.gs` file into the Apps Script project using the same filenames.
+2. Set Script Property `KOBO_API_TOKEN`.
+3. Run `fullRefreshAllForms()`.
+4. Optionally run `createDailyTrigger()` once for a daily 6 AM incremental pull.

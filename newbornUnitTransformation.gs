@@ -1,4 +1,4 @@
-/** Newborn Unit cleaning, standardization, and calculated fields. */
+/** Newborn Unit transformation and preferred headers. */
 
 function transformNewbornUnitRecord_(rec) {
   const out = {};
