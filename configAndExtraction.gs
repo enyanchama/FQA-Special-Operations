@@ -738,6 +738,41 @@ const FACILITY_MAP_BEFORE_2026 = {
 
 
 
+/** Outpatient facility_profile/gazetted — facility gazetted level. */
+const OUTPATIENT_FACILITY_LEVEL_MAP = {
+  1: 'Level 1',
+  2: 'Level 2',
+  3: 'Level 3',
+  4: 'Level 4',
+  5: 'Level 5',
+};
+
+/**
+ * Outpatient Yes/No coding across form versions. The first deployed version
+ * coded No as 0 (1 Yes / 0 No); every later version codes No as 2 (1 Yes /
+ * 2 No). Mapping 0 and 2 to No handles both without version detection.
+ */
+const OUTPATIENT_YES_NO_MAP = {
+  0: 'No',
+  1: 'Yes',
+  2: 'No',
+};
+
+/**
+ * select_multiple: general_services/family_plan
+ * Output columns: general_services_family_plan_<slug> = Yes / No / '' (blank
+ * when the question was skipped / irrelevant).
+ */
+const OUTPATIENT_FAMILY_PLAN_CHOICES = [
+  { code: '1', slug: 'intra_uterine_device_services' },
+  { code: '2', slug: 'implant_services' },
+  { code: '3', slug: 'oral_contraceptive_services' },
+  { code: '4', slug: 'injectable_contraceptive_services' },
+  { code: '5', slug: 'surgical_methods_of_contraception_btl_or_vasectomy_planning' },
+  { code: '6', slug: 'condoms_male_or_female' },
+  { code: '7', slug: 'none' },
+];
+
 function makeKeySet_(keys) {
   const set = {};
   keys.forEach(function (key) { set[key] = true; });
