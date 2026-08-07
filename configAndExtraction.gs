@@ -773,6 +773,16 @@ const OUTPATIENT_FAMILY_PLAN_CHOICES = [
   { code: '7', slug: 'none' },
 ];
 
+/**
+ * Outpatient SOP display status (handwashing_protocols, anc_protocols).
+ * Distinct from maternity SOP_PROTOCOL_MAP wording.
+ */
+const OUTPATIENT_SOP_DISPLAY_MAP = {
+  1: 'Yes, they have printed/written up to date protocols that are displayed',
+  2: 'They have printed/written up to date protocols, but they are not displayed',
+  3: 'No, they do NOT have printed/written up to date protocols',
+};
+
 function makeKeySet_(keys) {
   const set = {};
   keys.forEach(function (key) { set[key] = true; });

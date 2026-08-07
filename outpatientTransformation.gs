@@ -8,6 +8,7 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'facility_profile/county',
   'facility_profile/gazetted',
   'facility_profile/contact',
+  'facility_profile/nam_contact',
   'facility_profile/phone_contact',
   'facility_profile/unit',
   'general_services/admission',
@@ -21,6 +22,8 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'general_services/mothers_pnc',
   'general_services/infants_pnc',
   'general_services/infant_imm',
+  'general_services/foetal_nonstress',
+  'general_services/via',
   'general_services/gen_microscopy',
   'general_services/hemogram',
   'general_services/urinalysis',
@@ -63,6 +66,31 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'health_records_facility/cvc_register',
   'health_records_facility/pac_register',
   'health_records_facility/ptb_register',
+  'patient_confidentiality/visual_privacy',
+  'patient_confidentiality/auditory_privacy',
+  'patient_confidentiality/patient_files',
+  'staff_training/date_canc',
+  'staff_training/date_gbv',
+  'staff_training/date_prtc',
+  'staff_training/date_rmc',
+  'staff_training/date_sicpti',
+  'staff_training/date_pmtct',
+  'staff_training/date_pnc',
+  'staff_training/date_clients',
+  'staff_training/date_fam_plan',
+  'staff_training/date_crh',
+  'staff_training/date_asrh',
+  'staff_training/date_rhcs',
+  'sops_policies/staffing_policy',
+  'sops_policies/procument_protocols',
+  'sops_policies/triage_protocols',
+  'sops_policies/handwashing_protocols',
+  'sops_policies/fam_plan_guide',
+  'sops_policies/fam_plan_protocols',
+  'sops_policies/cervical_cancer',
+  'sops_policies/anc_protocols',
+  'sops_policies/staff_sop_guide',
+  'sops_policies/complicated_pregnancy',
 ]);
 
 function transformOutpatientRecord_(rec) {
@@ -84,6 +112,8 @@ function transformOutpatientRecord_(rec) {
     rec['facility_profile/gazetted'], OUTPATIENT_FACILITY_LEVEL_MAP
   );
   out.contact = lookupCoded_(rec['facility_profile/contact'], CONTACT_PERSON_MAP);
+  out.contact_name = rec['facility_profile/nam_contact'] == null
+    ? '' : rec['facility_profile/nam_contact'];
   out.phone_number = rec['facility_profile/phone_contact'] == null
     ? '' : rec['facility_profile/phone_contact'];
   out.unit = lookupCoded_(rec['facility_profile/unit'], OUTPATIENT_YES_NO_MAP);
@@ -121,6 +151,12 @@ function transformOutpatientRecord_(rec) {
   );
   out.infant_immunization = lookupCoded_(
     rec['general_services/infant_imm'], OUTPATIENT_YES_NO_MAP
+  );
+  out.foetal_nonstress = lookupCoded_(
+    rec['general_services/foetal_nonstress'], OUTPATIENT_YES_NO_MAP
+  );
+  out.services_via = lookupCoded_(
+    rec['general_services/via'], OUTPATIENT_YES_NO_MAP
   );
 
   out.general_microscopy = lookupCoded_(
@@ -252,6 +288,68 @@ function transformOutpatientRecord_(rec) {
     rec['health_records_facility/ptb_register'], NEWBORN_ADMISSION_AVAIL_MAP
   );
 
+  out.visual_privacy = lookupCoded_(
+    rec['patient_confidentiality/visual_privacy'], ROOM_PRIVACY_MAP
+  );
+  out.auditory_privacy = lookupCoded_(
+    rec['patient_confidentiality/auditory_privacy'], ROOM_PRIVACY_MAP
+  );
+  out.patient_filec_privacy = lookupCoded_(
+    rec['patient_confidentiality/patient_files'], OUTPATIENT_YES_NO_MAP
+  );
+
+  out.training_date_canc = formatYearMonth_(rec['staff_training/date_canc']);
+  out.training_date_gbv = formatYearMonth_(rec['staff_training/date_gbv']);
+  out.training_date_prtc = formatYearMonth_(rec['staff_training/date_prtc']);
+  out.training_date_rmc = formatYearMonth_(rec['staff_training/date_rmc']);
+  out.training_date_ipc = formatYearMonth_(rec['staff_training/date_sicpti']);
+  out.training_date_pmtct = formatYearMonth_(rec['staff_training/date_pmtct']);
+  out.training_date_pnc = formatYearMonth_(rec['staff_training/date_pnc']);
+  out.training_date_clients_support = formatYearMonth_(
+    rec['staff_training/date_clients']
+  );
+  out.training_family_planning = formatYearMonth_(
+    rec['staff_training/date_fam_plan']
+  );
+  out.training_date_crh = formatYearMonth_(rec['staff_training/date_crh']);
+  out.training_date_adolescent_rh = formatYearMonth_(
+    rec['staff_training/date_asrh']
+  );
+  out.training_date_rh_cancer_screening = formatYearMonth_(
+    rec['staff_training/date_rhcs']
+  );
+
+  out.staffing_policy = lookupCoded_(
+    rec['sops_policies/staffing_policy'], OUTPATIENT_YES_NO_MAP
+  );
+  out.procurement_protocol = lookupCoded_(
+    rec['sops_policies/procument_protocols'], OUTPATIENT_YES_NO_MAP
+  );
+  out.triage_protocol = lookupCoded_(
+    rec['sops_policies/triage_protocols'], OUTPATIENT_YES_NO_MAP
+  );
+  out.handwashing_protocols = lookupCoded_(
+    rec['sops_policies/handwashing_protocols'], OUTPATIENT_SOP_DISPLAY_MAP
+  );
+  out.family_planning_guide = lookupCoded_(
+    rec['sops_policies/fam_plan_guide'], OUTPATIENT_YES_NO_MAP
+  );
+  out.family_planning_protocol = lookupCoded_(
+    rec['sops_policies/fam_plan_protocols'], OUTPATIENT_YES_NO_MAP
+  );
+  out.sop_cervical_cancer = lookupCoded_(
+    rec['sops_policies/cervical_cancer'], OUTPATIENT_YES_NO_MAP
+  );
+  out.anc_protocols = lookupCoded_(
+    rec['sops_policies/anc_protocols'], OUTPATIENT_SOP_DISPLAY_MAP
+  );
+  out.staff_sop_guide = lookupCoded_(
+    rec['sops_policies/staff_sop_guide'], OUTPATIENT_YES_NO_MAP
+  );
+  out.complicated_pregnancy = lookupCoded_(
+    rec['sops_policies/complicated_pregnancy'], OUTPATIENT_YES_NO_MAP
+  );
+
   return out;
 }
 
@@ -264,6 +362,7 @@ function outpatientPreferredHeaders_() {
     'county',
     'facility_level',
     'contact',
+    'contact_name',
     'phone_number',
     'unit',
     'admission',
@@ -282,6 +381,8 @@ function outpatientPreferredHeaders_() {
       'mothers_pnc',
       'infants_pnc',
       'infant_immunization',
+      'foetal_nonstress',
+      'services_via',
       'general_microscopy',
       'full_hemogram',
       'perform_urinalysis',
@@ -324,5 +425,30 @@ function outpatientPreferredHeaders_() {
       'cervical_cancer_screening_register',
       'post_abortion_care_register',
       'presumptive_tb_register',
+      'visual_privacy',
+      'auditory_privacy',
+      'patient_filec_privacy',
+      'training_date_canc',
+      'training_date_gbv',
+      'training_date_prtc',
+      'training_date_rmc',
+      'training_date_ipc',
+      'training_date_pmtct',
+      'training_date_pnc',
+      'training_date_clients_support',
+      'training_family_planning',
+      'training_date_crh',
+      'training_date_adolescent_rh',
+      'training_date_rh_cancer_screening',
+      'staffing_policy',
+      'procurement_protocol',
+      'triage_protocol',
+      'handwashing_protocols',
+      'family_planning_guide',
+      'family_planning_protocol',
+      'sop_cervical_cancer',
+      'anc_protocols',
+      'staff_sop_guide',
+      'complicated_pregnancy',
     ]);
 }
