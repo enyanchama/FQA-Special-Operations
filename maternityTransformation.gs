@@ -71,6 +71,25 @@ function transformInpatientMaternityRecord_(rec) {
   out.offered_glucose = lookupCoded_(
     rec['services_offered/glucose'], MATERNITY_LAB_AVAILABILITY_MAP
   );
+  out.services_offered_uterotonics = lookupCoded_(
+    rec['services_offered/uterotonics'], YES_NO_MAP
+  );
+  out.anticonvulsant_frequency = lookupCoded_(
+    rec['services_offered/anticonvu_freq'], YES_NO_MAP
+  );
+  out.retained_products_frequency = lookupCoded_(
+    rec['services_offered/retained_freq'], YES_NO_MAP
+  );
+  out.manual_removal_placenta_freq = lookupCoded_(
+    rec['services_offered/placenta_freq'], YES_NO_MAP
+  );
+  out.avd_frequency = lookupCoded_(rec['services_offered/avd_freq'], YES_NO_MAP);
+  out.neonatal_resuscitation_freq = lookupCoded_(
+    rec['services_offered/resusci_freq'], YES_NO_MAP
+  );
+  out.services_offered_understand = toIntegerOrBlank_(
+    rec['services_offered/understand']
+  );
   out.access_rehab = lookupCoded_(rec['hrh/rehab'], YES_NO_MAP);
   out.birth_register = lookupCoded_(rec['health_records/birth'], NEWBORN_ADMISSION_AVAIL_MAP);
   out.birth_register_available = lookupCoded_(rec['health_records/bregister'], YES_NO_MAP);
@@ -122,22 +141,22 @@ function transformInpatientMaternityRecord_(rec) {
   );
 
   out.visual_privacy = lookupCoded_(
-    rec['Section_5_Privacy_confidentiality/visual'], ROOM_PRIVACY_MAP
+    privacyValue_(rec, 'visual'), ROOM_PRIVACY_MAP
   );
   out.auditory_privacy = lookupCoded_(
-    rec['Section_5_Privacy_confidentiality/auditory'], ROOM_PRIVACY_MAP
+    privacyValue_(rec, 'auditory'), ROOM_PRIVACY_MAP
   );
   out.patient_files_privacy = lookupCoded_(
-    rec['Section_5_Privacy_confidentiality/files'], YES_NO_MAP
+    privacyValue_(rec, 'files'), YES_NO_MAP
   );
   out.single_rooms = lookupCoded_(
-    rec['Section_5_Privacy_confidentiality/single_rooms'], YES_NO_MAP
+    privacyValue_(rec, 'single_rooms'), YES_NO_MAP
   );
   out.bed_space = lookupCoded_(
-    rec['Section_5_Privacy_confidentiality/beds'], MATERNITY_BED_SPACE_MAP
+    privacyValue_(rec, 'beds', 'beds_space'), MATERNITY_BED_SPACE_MAP
   );
   out.barrier_procedure_rooms = lookupCoded_(
-    rec['Section_5_Privacy_confidentiality/barrier'], MATERNITY_BARRIER_MAP
+    privacyValue_(rec, 'barrier'), MATERNITY_BARRIER_MAP
   );
 
   out.training_emonc_guideline = formatYearMonth_(rec['training/emonc_guidelines']);
@@ -645,6 +664,22 @@ function labourWardValue_(rec) {
   return firstValue_(rec, keys);
 }
 
+/**
+ * Read a Section 5 privacy/confidentiality value, tolerating both the
+ * capitalized and lowercase group names used across deployed form versions.
+ * Accepts one or more field-name spellings (bed spacing appears as both
+ * "beds" and "beds_space" depending on form version).
+ */
+function privacyValue_(rec) {
+  const fields = Array.prototype.slice.call(arguments, 1);
+  const keys = [];
+  fields.forEach(function (field) {
+    keys.push('Section_5_Privacy_Confidentiality/' + field);
+    keys.push('Section_5_Privacy_confidentiality/' + field);
+  });
+  return firstValue_(rec, keys);
+}
+
 /** Group-name variants used by Section 12 across deployed form versions. */
 var MATERNITY_BASED_PRACTICES_PREFIXES = [
   'Section_12_Adherenc_ence_based_Practices/',
@@ -690,7 +725,11 @@ function inpatientMaternityPreferredHeaders_() {
     'offered_urine_rapid', 'offered_urine_protein', 'offered_urine_glucose',
     'services_offered/hiv_rapid', 'offered_dbs', 'offered_rpr_vdrl',
     'offered_blood_group', 'offered_malaria', 'offered_hep_b', 'offer_tb_test',
-    'offered_glucose', 'access_rehab',
+    'offered_glucose', 'services_offered_uterotonics',
+    'anticonvulsant_frequency', 'retained_products_frequency',
+    'manual_removal_placenta_freq', 'avd_frequency',
+    'neonatal_resuscitation_freq', 'services_offered_understand',
+    'access_rehab',
     'birth_register', 'birth_register_available', 'death_register',
     'death_register_available', 'birth_death_nvrs', 'delivery_register',
     'delivery_reg_used', 'postnatal_register', 'postnatal_reg_used',
