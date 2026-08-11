@@ -783,6 +783,20 @@ const OUTPATIENT_SOP_DISPLAY_MAP = {
   3: 'No, they do NOT have printed/written up to date protocols',
 };
 
+/** Outpatient PNC and KEPI protocol availability. */
+const OUTPATIENT_PROTOCOL_AVAILABILITY_MAP = {
+  1: 'They have displayed, up to date protocols',
+  2: 'They have written up to date protocols, not displayed',
+  3: 'They do not have up displayed or written protocols',
+};
+
+/** wash_ipc/hand_hygiene — availability across service areas. */
+const OUTPATIENT_HAND_HYGIENE_MAP = {
+  1: 'Present in ALL service areas',
+  2: 'Present in some service areas',
+  3: 'Not present in service area',
+};
+
 function makeKeySet_(keys) {
   const set = {};
   keys.forEach(function (key) { set[key] = true; });

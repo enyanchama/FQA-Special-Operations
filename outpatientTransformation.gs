@@ -91,6 +91,22 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'sops_policies/anc_protocols',
   'sops_policies/staff_sop_guide',
   'sops_policies/complicated_pregnancy',
+  'sops_policies/pnc_protocols',
+  'sops_policies/kepi_vaccine',
+  'sops_policies/weaning_education',
+  'sops_policies/child_growth',
+  'sops_policies/inf_diarrhea',
+  'wash_ipc/water_source',
+  'wash_ipc/water_availability',
+  'wash_ipc/drainage_system',
+  'wash_ipc/hand_hygiene',
+  'wash_ipc/waste_mgt',
+  'wash_ipc/waste_bins',
+  'wash_ipc/functional_toilet',
+  'wash_ipc/sharp_container',
+  'wash_ipc/sharp_capacity',
+  'wash_ipc/handwash_area',
+  'wash_ipc/latrine_types',
 ]);
 
 function transformOutpatientRecord_(rec) {
@@ -349,6 +365,55 @@ function transformOutpatientRecord_(rec) {
   out.complicated_pregnancy = lookupCoded_(
     rec['sops_policies/complicated_pregnancy'], OUTPATIENT_YES_NO_MAP
   );
+  out.sops_pnc_protocol = lookupCoded_(
+    rec['sops_policies/pnc_protocols'], OUTPATIENT_PROTOCOL_AVAILABILITY_MAP
+  );
+  out.sops_kepi_vaccine = lookupCoded_(
+    rec['sops_policies/kepi_vaccine'], OUTPATIENT_PROTOCOL_AVAILABILITY_MAP
+  );
+  out.sops_weaning_education = lookupCoded_(
+    rec['sops_policies/weaning_education'], OUTPATIENT_YES_NO_MAP
+  );
+  out.sops_child_growth = lookupCoded_(
+    rec['sops_policies/child_growth'], OUTPATIENT_YES_NO_MAP
+  );
+  out.sops_infant_diarrhea = lookupCoded_(
+    rec['sops_policies/inf_diarrhea'], OUTPATIENT_YES_NO_MAP
+  );
+
+  out.wash_water_source = lookupCoded_(
+    rec['wash_ipc/water_source'], WATER_SOURCE_MAP
+  );
+  out.wash_water_availability = lookupCoded_(
+    rec['wash_ipc/water_availability'], OUTPATIENT_YES_NO_MAP
+  );
+  out.wash_drainage = lookupCoded_(
+    rec['wash_ipc/drainage_system'], OUTPATIENT_YES_NO_MAP
+  );
+  out.wash_hand_hygiene = lookupCoded_(
+    rec['wash_ipc/hand_hygiene'], OUTPATIENT_HAND_HYGIENE_MAP
+  );
+  out.wash_waste_management = lookupCoded_(
+    rec['wash_ipc/waste_mgt'], WASTE_MANAGEMENT_MAP
+  );
+  out.wash_waste_bins = lookupCoded_(
+    rec['wash_ipc/waste_bins'], OUTPATIENT_YES_NO_MAP
+  );
+  out.wash_functional_toilet = lookupCoded_(
+    rec['wash_ipc/functional_toilet'], OUTPATIENT_YES_NO_MAP
+  );
+  out.wash_sharp_container = lookupCoded_(
+    rec['wash_ipc/sharp_container'], OUTPATIENT_YES_NO_MAP
+  );
+  out.wash_sharp_capacity = lookupCoded_(
+    rec['wash_ipc/sharp_capacity'], OUTPATIENT_YES_NO_MAP
+  );
+  out.was_handwash_area = lookupCoded_(
+    rec['wash_ipc/handwash_area'], OUTPATIENT_YES_NO_MAP
+  );
+  out.wash_latrine_type = lookupCoded_(
+    rec['wash_ipc/latrine_types'], MATERNITY_LATRINE_MAP
+  );
 
   return out;
 }
@@ -450,5 +515,21 @@ function outpatientPreferredHeaders_() {
       'anc_protocols',
       'staff_sop_guide',
       'complicated_pregnancy',
+      'sops_pnc_protocol',
+      'sops_kepi_vaccine',
+      'sops_weaning_education',
+      'sops_child_growth',
+      'sops_infant_diarrhea',
+      'wash_water_source',
+      'wash_water_availability',
+      'wash_drainage',
+      'wash_hand_hygiene',
+      'wash_waste_management',
+      'wash_waste_bins',
+      'wash_functional_toilet',
+      'wash_sharp_container',
+      'wash_sharp_capacity',
+      'was_handwash_area',
+      'wash_latrine_type',
     ]);
 }
