@@ -901,6 +901,84 @@ const OUTPATIENT_COMMODITY_PHARMACY_MAP = {
   4: 'Never available in this facility',
 };
 
+/** Commodities sourced from laboratory when not in unit. */
+const OUTPATIENT_COMMODITY_LAB_MAP = {
+  1: 'Always available in this unit',
+  2: 'Sometimes available in this unit',
+  3: 'Never immediately available in this unit but able to get from laboratory',
+  4: 'Never available in this facility',
+};
+
+/**
+ * select_multiple: adherance_to_ebp/health_edu
+ * Output: adherance_to_ebp_health_edu_<slug> = Yes / No / ''
+ */
+const OUTPATIENT_HEALTH_EDU_CHOICES = [
+  { code: '1', slug: 'individual_birth_plan_ibp' },
+  { code: '2', slug: 'danger_signs' },
+  { code: '3', slug: 'hygiene' },
+  { code: '4', slug: 'nutrition' },
+  { code: '5', slug: 'safer_sex' },
+  { code: '6', slug: 'hiv_management_if_positive' },
+  { code: '7', slug: 'wellness_in_pregnancy' },
+  { code: '8', slug: 'none' },
+  { code: '9', slug: 'prep_risk_assessment_for_hiv_negative_mothers' },
+];
+
+/**
+ * select_multiple: adherance_to_ebp/anc_visit
+ * Output: adherance_to_ebp_anc_visit_<slug> = Yes / No / ''
+ */
+const OUTPATIENT_ANC_VISIT_CHOICES = [
+  { code: '1', slug: 'confirmation_of_viability' },
+  { code: '2', slug: 'assignment_of_edd' },
+  { code: '3', slug: 'systematic_physical_exam' },
+  {
+    code: '4',
+    slug: 'antenatal_profile_including_hgb_hiv_testing_g_rh_hepatitis_b_syphilis_test_urine_dipstick_rbs',
+  },
+  { code: '5', slug: 'comprehensive_medical_obstetric_history_taken' },
+  { code: '6', slug: 'ultrasound_performed' },
+  { code: '7', slug: 'none' },
+];
+
+/**
+ * select_multiple: adherance_to_ebp/third_trimester
+ * Output: adherance_to_ebp_third_trimester_<slug> = Yes / No / ''
+ * Note: Kobo codes 6=None and 7=Birth plan and Nutrition (not sequential).
+ */
+const OUTPATIENT_THIRD_TRIMESTER_CHOICES = [
+  { code: '1', slug: 'signs_of_labour' },
+  { code: '2', slug: 'future_family_planning_options' },
+  { code: '3', slug: 'newborn_care' },
+  { code: '4', slug: 'breastfeeding' },
+  { code: '5', slug: 'danger_signs' },
+  { code: '7', slug: 'birth_plan_and_nutrition' },
+  { code: '6', slug: 'none' },
+];
+
+/**
+ * select_multiple: adherance_to_ebp/postnatal_exam
+ * Output: adherance_to_ebp_postnatal_exam_<slug> = Yes / No / ''
+ */
+const OUTPATIENT_POSTNATAL_EXAM_CHOICES = [
+  { code: '1', slug: 'maternal_exam' },
+  { code: '2', slug: 'newborn_exam' },
+  { code: '3', slug: 'newborn_vaccinations_as_needed' },
+];
+
+/**
+ * select_multiple: adherance_to_ebp/pnc_visit
+ * Output: adherance_to_ebp_pnc_visit_<slug> = Yes / No / ''
+ */
+const OUTPATIENT_PNC_VISIT_CHOICES = [
+  { code: '1', slug: 'ppfp_options' },
+  { code: '2', slug: 'appropriate_birth_spacing' },
+  { code: '3', slug: 'return_to_intercourse' },
+  { code: '4', slug: 'exclusive_breastfeeding' },
+  { code: '5', slug: 'postnatal_danger_signs' },
+];
+
 function makeKeySet_(keys) {
   const set = {};
   keys.forEach(function (key) { set[key] = true; });

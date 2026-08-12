@@ -167,6 +167,23 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'commodities_available/malaria_drugs',
   'commodities_available/deworming',
   'commodities_available/vitamin_a',
+  'commodities_available/anaesthesia',
+  'commodities_available/rutf',
+  'commodities_available/zinc',
+  'commodities_available/hiv_rtk',
+  'commodities_available/dipstick_ketone',
+  'commodities_available/glucometer_strips',
+  'adherance_to_ebp/patient_id',
+  'adherance_to_ebp/triage_process',
+  'adherance_to_ebp/triage_record',
+  'adherance_to_ebp/health_edu',
+  'adherance_to_ebp/anc_visit',
+  'adherance_to_ebp/third_trimester',
+  'adherance_to_ebp/postnatal_exam',
+  'adherance_to_ebp/pnc_visit',
+  'adherance_to_ebp/anc_defaulters',
+  'adherance_to_ebp/group_anc',
+  'adherance_to_ebp/referral',
 ]);
 
 function transformOutpatientRecord_(rec) {
@@ -668,6 +685,73 @@ function transformOutpatientRecord_(rec) {
   out.vit_a_available = lookupCoded_(
     rec['commodities_available/vitamin_a'], OUTPATIENT_COMMODITY_PHARMACY_MAP
   );
+  out.available_anaesthesia = lookupCoded_(
+    rec['commodities_available/anaesthesia'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.available_rutf = lookupCoded_(
+    rec['commodities_available/rutf'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.available_zinc = lookupCoded_(
+    rec['commodities_available/zinc'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.available_hiv_rapid_test_kits = lookupCoded_(
+    rec['commodities_available/hiv_rtk'], OUTPATIENT_COMMODITY_LAB_MAP
+  );
+  out.available_dipstick_ketone = lookupCoded_(
+    rec['commodities_available/dipstick_ketone'], OUTPATIENT_COMMODITY_LAB_MAP
+  );
+  out.available_glucometer = lookupCoded_(
+    rec['commodities_available/glucometer_strips'], OUTPATIENT_COMMODITY_LAB_MAP
+  );
+
+  out.patient_identification = lookupCoded_(
+    rec['adherance_to_ebp/patient_id'], ALWAYS_SOMETIMES_NEVER_MAP
+  );
+  out.triage_process = lookupCoded_(
+    rec['adherance_to_ebp/triage_process'], OUTPATIENT_YES_NO_MAP
+  );
+  out.triage_record = lookupCoded_(
+    rec['adherance_to_ebp/triage_record'], OUTPATIENT_YES_NO_MAP
+  );
+  expandSelectMultiple_(
+    out,
+    rec['adherance_to_ebp/health_edu'],
+    'adherance_to_ebp_health_edu',
+    OUTPATIENT_HEALTH_EDU_CHOICES
+  );
+  expandSelectMultiple_(
+    out,
+    rec['adherance_to_ebp/anc_visit'],
+    'adherance_to_ebp_anc_visit',
+    OUTPATIENT_ANC_VISIT_CHOICES
+  );
+  expandSelectMultiple_(
+    out,
+    rec['adherance_to_ebp/third_trimester'],
+    'adherance_to_ebp_third_trimester',
+    OUTPATIENT_THIRD_TRIMESTER_CHOICES
+  );
+  expandSelectMultiple_(
+    out,
+    rec['adherance_to_ebp/postnatal_exam'],
+    'adherance_to_ebp_postnatal_exam',
+    OUTPATIENT_POSTNATAL_EXAM_CHOICES
+  );
+  expandSelectMultiple_(
+    out,
+    rec['adherance_to_ebp/pnc_visit'],
+    'adherance_to_ebp_pnc_visit',
+    OUTPATIENT_PNC_VISIT_CHOICES
+  );
+  out.anc_defaulters = lookupCoded_(
+    rec['adherance_to_ebp/anc_defaulters'], OUTPATIENT_YES_NO_MAP
+  );
+  out.group_anc = lookupCoded_(
+    rec['adherance_to_ebp/group_anc'], OUTPATIENT_YES_NO_MAP
+  );
+  out.referral_mechanism = lookupCoded_(
+    rec['adherance_to_ebp/referral'], OUTPATIENT_YES_NO_MAP
+  );
 
   return out;
 }
@@ -858,5 +942,39 @@ function outpatientPreferredHeaders_() {
       'malaria_drugs_available',
       'deworming_available',
       'vit_a_available',
+      'available_anaesthesia',
+      'available_rutf',
+      'available_zinc',
+      'available_hiv_rapid_test_kits',
+      'available_dipstick_ketone',
+      'available_glucometer',
+      'patient_identification',
+      'triage_process',
+      'triage_record',
+    ])
+    .concat(selectMultipleHeaders_(
+      'adherance_to_ebp_health_edu',
+      OUTPATIENT_HEALTH_EDU_CHOICES
+    ))
+    .concat(selectMultipleHeaders_(
+      'adherance_to_ebp_anc_visit',
+      OUTPATIENT_ANC_VISIT_CHOICES
+    ))
+    .concat(selectMultipleHeaders_(
+      'adherance_to_ebp_third_trimester',
+      OUTPATIENT_THIRD_TRIMESTER_CHOICES
+    ))
+    .concat(selectMultipleHeaders_(
+      'adherance_to_ebp_postnatal_exam',
+      OUTPATIENT_POSTNATAL_EXAM_CHOICES
+    ))
+    .concat(selectMultipleHeaders_(
+      'adherance_to_ebp_pnc_visit',
+      OUTPATIENT_PNC_VISIT_CHOICES
+    ))
+    .concat([
+      'anc_defaulters',
+      'group_anc',
+      'referral_mechanism',
     ]);
 }
