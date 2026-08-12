@@ -797,6 +797,110 @@ const OUTPATIENT_HAND_HYGIENE_MAP = {
   3: 'Not present in service area',
 };
 
+/**
+ * select_multiple: overall_infrastructure/materials_display
+ * Output: overall_infrastructure_materials_display_<slug> = Yes / No / ''
+ */
+const OUTPATIENT_MATERIALS_DISPLAY_CHOICES = [
+  { code: '1', slug: 'nutrition' },
+  { code: '2', slug: 'breast_examination' },
+  { code: '3', slug: 'stis_hiv_materials' },
+  { code: '4', slug: 'exercises' },
+  { code: '5', slug: 'family_planning' },
+  { code: '6', slug: 'other_specify' },
+  { code: '7', slug: 'none_available' },
+];
+
+/**
+ * Equipment present/functional coding used by oximeter, light_source,
+ * vaccine_refrigerator, refrigerator. Distinct from EQUIP_FUNCTIONAL_MAP
+ * which labels 3 as "No".
+ */
+const OUTPATIENT_EQUIP_FUNCTIONAL_MAP = {
+  1: 'Yes, functional',
+  2: 'Yes, non-functional',
+  3: 'Not available',
+};
+
+/** equipment_availability/ultrasound_machine */
+const OUTPATIENT_ULTRASOUND_MACHINE_MAP = {
+  1: 'Yes, functional',
+  2: 'Yes, non-functional',
+  3: 'No, but ultrasound services available elsewhere in this facility',
+  4: 'Not available',
+};
+
+/**
+ * Lab-adjacent equipment (light microscope, glucometer, haemoglobinometer):
+ * may be available in the facility lab instead of this unit.
+ */
+const OUTPATIENT_LAB_EQUIP_MAP = {
+  1: 'Yes, functional',
+  2: 'Yes, non-functional',
+  3: 'No, but available in facility lab',
+  4: 'Not available',
+};
+
+/**
+ * select_multiple: equipment_availability/emergency_tray
+ * Output: equipment_availability_emergency_tray_<slug> = Yes / No / ''
+ */
+const OUTPATIENT_EMERGENCY_TRAY_CHOICES = [
+  { code: '1', slug: 'adrenaline_inj' },
+  { code: '2', slug: 'atropine' },
+  { code: '3', slug: 'ventolin_inh' },
+  { code: '4', slug: 'hydrocortisone_inj' },
+  { code: '5', slug: 'diazepam_inj' },
+  { code: '6', slug: 'calcium_gluconate_inj' },
+  { code: '7', slug: 'mgso4_inj' },
+  { code: '8', slug: 'labetalol_inj' },
+  { code: '9', slug: 'phenobarbitol_inj' },
+  { code: '10', slug: 'normal_saline' },
+  { code: '11', slug: 'dextrose_50' },
+  { code: '12', slug: 'tranexamic_acid_inj' },
+  { code: '13', slug: 'phenytoin' },
+  { code: '14', slug: 'dextrose_10' },
+  { code: '15', slug: 'no_emergency_tray_available' },
+];
+
+/**
+ * select_multiple: equipment_availability/resus_cart
+ * Output: equipment_availability_resus_cart_<slug> = Yes / No / ''
+ */
+const OUTPATIENT_RESUS_CART_CHOICES = [
+  { code: '1', slug: 'ambubag_or_bvm' },
+  { code: '2', slug: 'reservoir' },
+  { code: '3', slug: 'facemasks' },
+  { code: '4', slug: 'airway' },
+  { code: '5', slug: 'bulb_sucker' },
+  { code: '6', slug: 'breathing_system' },
+  { code: '7', slug: 'gyn_gloves' },
+  { code: '8', slug: 'suture_pack' },
+  { code: '9', slug: 'branulars' },
+  { code: '10', slug: 'syringes' },
+  { code: '11', slug: 'needles' },
+  { code: '12', slug: 'alcohol_swabs' },
+  { code: '13', slug: 'water_for_injection' },
+  { code: '14', slug: 'iv_giving_set' },
+  { code: '15', slug: 'no_resuscitation_cart_available' },
+];
+
+/** Commodities sourced from central store when not in unit. */
+const OUTPATIENT_COMMODITY_STORE_MAP = {
+  1: 'Always available in this unit',
+  2: 'Sometimes available in this unit',
+  3: 'Never immediately available in this unit but able to get from central store',
+  4: 'Never available in this facility',
+};
+
+/** Commodities sourced from pharmacy when not in unit. */
+const OUTPATIENT_COMMODITY_PHARMACY_MAP = {
+  1: 'Always available in this unit',
+  2: 'Sometimes available in this unit',
+  3: 'Never immediately available in this unit but able to get from pharmacy',
+  4: 'Never available in this facility',
+};
+
 function makeKeySet_(keys) {
   const set = {};
   keys.forEach(function (key) { set[key] = true; });

@@ -123,6 +123,50 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'overall_infrastructure/lighting',
   'overall_infrastructure/ventilation_exam',
   'overall_infrastructure/exam_rooms',
+  'overall_infrastructure/fire_extinguishers',
+  'overall_infrastructure/facility_signs',
+  'overall_infrastructure/service_charter',
+  'overall_infrastructure/materials_display',
+  'overall_infrastructure/service_areas',
+  'equipment_availability/exam_couches',
+  'equipment_availability/bp_apparatus',
+  'equipment_availability/thermometers',
+  'equipment_availability/stethoscopes',
+  'equipment_availability/fetal_doppler',
+  'equipment_availability/oximeter',
+  'equipment_availability/measuring_tape',
+  'equipment_availability/stadiometre',
+  'equipment_availability/adult_scale',
+  'equipment_availability/inf_scale',
+  'equipment_availability/gestational_wheel',
+  'equipment_availability/sterile_speculum',
+  'equipment_availability/ultrasound_machine',
+  'equipment_availability/light_source',
+  'equipment_availability/vaccine_refrigerator',
+  'equipment_availability/emergency_tray',
+  'equipment_availability/resus_cart',
+  'equipment_availability/iud_trays',
+  'equipment_availability/implant_insertion',
+  'equipment_availability/light_micros',
+  'equipment_availability/glucometer',
+  'equipment_availability/refrigerator',
+  'equipment_availability/hemocue',
+  'commodities_available/itns',
+  'commodities_available/latex_gloves',
+  'commodities_available/sterile_gloves',
+  'commodities_available/ppe',
+  'commodities_available/glass_slides',
+  'commodities_available/tetanus',
+  'commodities_available/bcg',
+  'commodities_available/pentavlent',
+  'commodities_available/hepb',
+  'commodities_available/rotavirus',
+  'commodities_available/pneumococcal',
+  'commodities_available/sterile_drugs',
+  'commodities_available/ifas',
+  'commodities_available/malaria_drugs',
+  'commodities_available/deworming',
+  'commodities_available/vitamin_a',
 ]);
 
 function transformOutpatientRecord_(rec) {
@@ -479,6 +523,151 @@ function transformOutpatientRecord_(rec) {
   out.number_exam_rooms = toIntegerOrBlank_(
     rec['overall_infrastructure/exam_rooms']
   );
+  out.fire_extinguisher = lookupCoded_(
+    rec['overall_infrastructure/fire_extinguishers'], OUTPATIENT_YES_NO_MAP
+  );
+  out.facility_visible_signage = lookupCoded_(
+    rec['overall_infrastructure/facility_signs'], OUTPATIENT_YES_NO_MAP
+  );
+  out.visible_service_charter = lookupCoded_(
+    rec['overall_infrastructure/service_charter'], OUTPATIENT_YES_NO_MAP
+  );
+  expandSelectMultiple_(
+    out,
+    rec['overall_infrastructure/materials_display'],
+    'overall_infrastructure_materials_display',
+    OUTPATIENT_MATERIALS_DISPLAY_CHOICES
+  );
+  out.service_areas = lookupCoded_(
+    rec['overall_infrastructure/service_areas'], OUTPATIENT_YES_NO_MAP
+  );
+
+  out.numbers_examination_couches = toIntegerOrBlank_(
+    rec['equipment_availability/exam_couches']
+  );
+  out.number_bp_apparatus = toIntegerOrBlank_(
+    rec['equipment_availability/bp_apparatus']
+  );
+  out.number_thermometers = toIntegerOrBlank_(
+    rec['equipment_availability/thermometers']
+  );
+  out.number_stethoscopes = toIntegerOrBlank_(
+    rec['equipment_availability/stethoscopes']
+  );
+  out.number_fetal_doppler = toIntegerOrBlank_(
+    rec['equipment_availability/fetal_doppler']
+  );
+  out.number_oximeter = lookupCoded_(
+    rec['equipment_availability/oximeter'], OUTPATIENT_EQUIP_FUNCTIONAL_MAP
+  );
+  out.number_measuring_tape = lookupCoded_(
+    rec['equipment_availability/measuring_tape'], OUTPATIENT_YES_NO_MAP
+  );
+  out.number_stadiometre = lookupCoded_(
+    rec['equipment_availability/stadiometre'], OUTPATIENT_YES_NO_MAP
+  );
+  out.adult_scale = lookupCoded_(
+    rec['equipment_availability/adult_scale'], OUTPATIENT_YES_NO_MAP
+  );
+  out.infant_scale = lookupCoded_(
+    rec['equipment_availability/inf_scale'], OUTPATIENT_YES_NO_MAP
+  );
+  out.gestational_wheel = lookupCoded_(
+    rec['equipment_availability/gestational_wheel'], OUTPATIENT_YES_NO_MAP
+  );
+  out.sterile_speculum = lookupCoded_(
+    rec['equipment_availability/sterile_speculum'], OUTPATIENT_YES_NO_MAP
+  );
+  out.ultrasound_machine = lookupCoded_(
+    rec['equipment_availability/ultrasound_machine'],
+    OUTPATIENT_ULTRASOUND_MACHINE_MAP
+  );
+  out.light_source = lookupCoded_(
+    rec['equipment_availability/light_source'], OUTPATIENT_EQUIP_FUNCTIONAL_MAP
+  );
+  out.vaccine_refrigerator = lookupCoded_(
+    rec['equipment_availability/vaccine_refrigerator'],
+    OUTPATIENT_EQUIP_FUNCTIONAL_MAP
+  );
+  expandSelectMultiple_(
+    out,
+    rec['equipment_availability/emergency_tray'],
+    'equipment_availability_emergency_tray',
+    OUTPATIENT_EMERGENCY_TRAY_CHOICES
+  );
+  expandSelectMultiple_(
+    out,
+    rec['equipment_availability/resus_cart'],
+    'equipment_availability_resus_cart',
+    OUTPATIENT_RESUS_CART_CHOICES
+  );
+  out.iud_trays_availlable = lookupCoded_(
+    rec['equipment_availability/iud_trays'], OUTPATIENT_YES_NO_MAP
+  );
+  out.implant_insertion_available = lookupCoded_(
+    rec['equipment_availability/implant_insertion'], OUTPATIENT_YES_NO_MAP
+  );
+  out.light_microscope_available = lookupCoded_(
+    rec['equipment_availability/light_micros'], OUTPATIENT_LAB_EQUIP_MAP
+  );
+  out.glucometer_available = lookupCoded_(
+    rec['equipment_availability/glucometer'], OUTPATIENT_LAB_EQUIP_MAP
+  );
+  out.refregerator_available = lookupCoded_(
+    rec['equipment_availability/refrigerator'], OUTPATIENT_EQUIP_FUNCTIONAL_MAP
+  );
+  out.haemoglobinometer = lookupCoded_(
+    rec['equipment_availability/hemocue'], OUTPATIENT_LAB_EQUIP_MAP
+  );
+
+  out.insecticide_treated_nets_available = lookupCoded_(
+    rec['commodities_available/itns'], OUTPATIENT_COMMODITY_STORE_MAP
+  );
+  out.latex_gloves_available = lookupCoded_(
+    rec['commodities_available/latex_gloves'], OUTPATIENT_COMMODITY_STORE_MAP
+  );
+  out.sterile_gloves_available = lookupCoded_(
+    rec['commodities_available/sterile_gloves'], OUTPATIENT_COMMODITY_STORE_MAP
+  );
+  out.ppe_available = lookupCoded_(
+    rec['commodities_available/ppe'], OUTPATIENT_COMMODITY_STORE_MAP
+  );
+  out.glass_slides_available = lookupCoded_(
+    rec['commodities_available/glass_slides'], OUTPATIENT_COMMODITY_STORE_MAP
+  );
+  out.available_tetanus = lookupCoded_(
+    rec['commodities_available/tetanus'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.bcg_available = lookupCoded_(
+    rec['commodities_available/bcg'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.pentavlent_available = lookupCoded_(
+    rec['commodities_available/pentavlent'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.hepb_available = lookupCoded_(
+    rec['commodities_available/hepb'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.available_rotavirus = lookupCoded_(
+    rec['commodities_available/rotavirus'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.available_pneumococcal = lookupCoded_(
+    rec['commodities_available/pneumococcal'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.available_sterile_drugs = lookupCoded_(
+    rec['commodities_available/sterile_drugs'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.available_ifas = lookupCoded_(
+    rec['commodities_available/ifas'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.malaria_drugs_available = lookupCoded_(
+    rec['commodities_available/malaria_drugs'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.deworming_available = lookupCoded_(
+    rec['commodities_available/deworming'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.vit_a_available = lookupCoded_(
+    rec['commodities_available/vitamin_a'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
 
   return out;
 }
@@ -612,5 +801,62 @@ function outpatientPreferredHeaders_() {
       'spaces_lighting',
       'ventilation_exam',
       'number_exam_rooms',
+      'fire_extinguisher',
+      'facility_visible_signage',
+      'visible_service_charter',
+    ])
+    .concat(selectMultipleHeaders_(
+      'overall_infrastructure_materials_display',
+      OUTPATIENT_MATERIALS_DISPLAY_CHOICES
+    ))
+    .concat([
+      'service_areas',
+      'numbers_examination_couches',
+      'number_bp_apparatus',
+      'number_thermometers',
+      'number_stethoscopes',
+      'number_fetal_doppler',
+      'number_oximeter',
+      'number_measuring_tape',
+      'number_stadiometre',
+      'adult_scale',
+      'infant_scale',
+      'gestational_wheel',
+      'sterile_speculum',
+      'ultrasound_machine',
+      'light_source',
+      'vaccine_refrigerator',
+    ])
+    .concat(selectMultipleHeaders_(
+      'equipment_availability_emergency_tray',
+      OUTPATIENT_EMERGENCY_TRAY_CHOICES
+    ))
+    .concat(selectMultipleHeaders_(
+      'equipment_availability_resus_cart',
+      OUTPATIENT_RESUS_CART_CHOICES
+    ))
+    .concat([
+      'iud_trays_availlable',
+      'implant_insertion_available',
+      'light_microscope_available',
+      'glucometer_available',
+      'refregerator_available',
+      'haemoglobinometer',
+      'insecticide_treated_nets_available',
+      'latex_gloves_available',
+      'sterile_gloves_available',
+      'ppe_available',
+      'glass_slides_available',
+      'available_tetanus',
+      'bcg_available',
+      'pentavlent_available',
+      'hepb_available',
+      'available_rotavirus',
+      'available_pneumococcal',
+      'available_sterile_drugs',
+      'available_ifas',
+      'malaria_drugs_available',
+      'deworming_available',
+      'vit_a_available',
     ]);
 }
