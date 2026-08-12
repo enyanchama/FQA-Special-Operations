@@ -196,6 +196,7 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'commodities_available/dipstick_urine',
   'commodities_available/filter_paper',
   'commodities_available/malaria_zone',
+  'commodities_available/ors',
   'adherance_to_ebp/patient_id',
   'adherance_to_ebp/triage_process',
   'adherance_to_ebp/triage_record',
@@ -208,6 +209,8 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'adherance_to_ebp/group_anc',
   'adherance_to_ebp/referral',
   'adherance_to_ebp/preconception_visit',
+  'adherance_to_ebp/male_chaperone',
+  'wash_ipc/other',
   'operation_hours/opening_hours',
   'Section_14_Enumerator_Comments/comments',
   'Section_14_Enumerator_Comments/data_quality',
@@ -570,6 +573,8 @@ function transformOutpatientRecord_(rec) {
   out.wash_number_toilets = toIntegerOrBlank_(
     rec['wash_ipc/no_of_toilets']
   );
+  out.wash_other_specify = rec['wash_ipc/other'] == null
+    ? '' : rec['wash_ipc/other'];
 
   out.waiting_area = lookupCoded_(
     rec['overall_infrastructure/waiting_area'], OUTPATIENT_YES_NO_MAP
@@ -799,6 +804,9 @@ function transformOutpatientRecord_(rec) {
   out.malaria_zone = lookupCoded_(
     rec['commodities_available/malaria_zone'], OUTPATIENT_YES_NO_MAP
   );
+  out.available_ors = lookupCoded_(
+    rec['commodities_available/ors'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
 
   out.patient_identification = lookupCoded_(
     rec['adherance_to_ebp/patient_id'], ALWAYS_SOMETIMES_NEVER_MAP
@@ -853,6 +861,9 @@ function transformOutpatientRecord_(rec) {
     rec['adherance_to_ebp/preconception_visit'],
     'adherance_to_ebp_preconception_visit',
     OUTPATIENT_PRECONCEPTION_VISIT_CHOICES
+  );
+  out.male_chaperone = lookupCoded_(
+    rec['adherance_to_ebp/male_chaperone'], OUTPATIENT_YES_NO_MAP
   );
 
   out.opening_hours = lookupCoded_(
@@ -986,6 +997,7 @@ function outpatientPreferredHeaders_() {
       'wash_menstrual_hygiene',
       'wash_handwash_stations',
       'wash_number_toilets',
+      'wash_other_specify',
       'waiting_area',
       'chair_availability',
       'ventilation',
@@ -1118,5 +1130,7 @@ function outpatientPreferredHeaders_() {
       'malaria_zone',
       'cwc_register',
       'opd_register',
+      'available_ors',
+      'male_chaperone',
     ]);
 }
