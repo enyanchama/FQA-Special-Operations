@@ -107,6 +107,7 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'wash_ipc/sharp_capacity',
   'wash_ipc/handwash_area',
   'wash_ipc/latrine_types',
+  'overall_infrastructure/exam_rooms',
 ]);
 
 function transformOutpatientRecord_(rec) {
@@ -415,6 +416,10 @@ function transformOutpatientRecord_(rec) {
     rec['wash_ipc/latrine_types'], MATERNITY_LATRINE_MAP
   );
 
+  out.number_exam_rooms = toIntegerOrBlank_(
+    rec['overall_infrastructure/exam_rooms']
+  );
+
   return out;
 }
 
@@ -531,5 +536,6 @@ function outpatientPreferredHeaders_() {
       'wash_sharp_capacity',
       'was_handwash_area',
       'wash_latrine_type',
+      'number_exam_rooms',
     ]);
 }
