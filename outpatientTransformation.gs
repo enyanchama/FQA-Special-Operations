@@ -107,6 +107,21 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'wash_ipc/sharp_capacity',
   'wash_ipc/handwash_area',
   'wash_ipc/latrine_types',
+  'wash_ipc/disinfectant',
+  'wash_ipc/cleanliness',
+  'wash_ipc/accessibility',
+  'wash_ipc/gender_separation',
+  'wash_ipc/menstrual_hygiene',
+  'wash_ipc/handwash_stations',
+  'wash_ipc/no_of_toilets',
+  'overall_infrastructure/waiting_area',
+  'overall_infrastructure/chair_availability',
+  'overall_infrastructure/ventilation',
+  'overall_infrastructure/tidiness',
+  'overall_infrastructure/education_material',
+  'overall_infrastructure/maintenance',
+  'overall_infrastructure/lighting',
+  'overall_infrastructure/ventilation_exam',
   'overall_infrastructure/exam_rooms',
 ]);
 
@@ -415,7 +430,52 @@ function transformOutpatientRecord_(rec) {
   out.wash_latrine_type = lookupCoded_(
     rec['wash_ipc/latrine_types'], MATERNITY_LATRINE_MAP
   );
+  out.wash_bathrooms_disinfected = lookupCoded_(
+    rec['wash_ipc/disinfectant'], MATERNITY_BATHROOM_CLEANING_MAP
+  );
+  out.wash_cleanliness = lookupCoded_(
+    rec['wash_ipc/cleanliness'], OUTPATIENT_YES_NO_MAP
+  );
+  out.wash_accessibility = lookupCoded_(
+    rec['wash_ipc/accessibility'], OUTPATIENT_YES_NO_MAP
+  );
+  out.wash_gender_separation = lookupCoded_(
+    rec['wash_ipc/gender_separation'], OUTPATIENT_YES_NO_MAP
+  );
+  out.wash_menstrual_hygiene = lookupCoded_(
+    rec['wash_ipc/menstrual_hygiene'], OUTPATIENT_YES_NO_MAP
+  );
+  out.wash_handwash_stations = lookupCoded_(
+    rec['wash_ipc/handwash_stations'], OUTPATIENT_YES_NO_MAP
+  );
+  out.wash_number_toilets = toIntegerOrBlank_(
+    rec['wash_ipc/no_of_toilets']
+  );
 
+  out.waiting_area = lookupCoded_(
+    rec['overall_infrastructure/waiting_area'], OUTPATIENT_YES_NO_MAP
+  );
+  out.chair_availability = lookupCoded_(
+    rec['overall_infrastructure/chair_availability'], OUTPATIENT_YES_NO_MAP
+  );
+  out.ventilation = lookupCoded_(
+    rec['overall_infrastructure/ventilation'], OUTPATIENT_YES_NO_MAP
+  );
+  out.waiting_area_well_maintained = lookupCoded_(
+    rec['overall_infrastructure/tidiness'], OUTPATIENT_YES_NO_MAP
+  );
+  out.educational_material = lookupCoded_(
+    rec['overall_infrastructure/education_material'], OUTPATIENT_YES_NO_MAP
+  );
+  out.wall_well_maintained = lookupCoded_(
+    rec['overall_infrastructure/maintenance'], OUTPATIENT_YES_NO_MAP
+  );
+  out.spaces_lighting = lookupCoded_(
+    rec['overall_infrastructure/lighting'], OUTPATIENT_YES_NO_MAP
+  );
+  out.ventilation_exam = lookupCoded_(
+    rec['overall_infrastructure/ventilation_exam'], OUTPATIENT_YES_NO_MAP
+  );
   out.number_exam_rooms = toIntegerOrBlank_(
     rec['overall_infrastructure/exam_rooms']
   );
@@ -536,6 +596,21 @@ function outpatientPreferredHeaders_() {
       'wash_sharp_capacity',
       'was_handwash_area',
       'wash_latrine_type',
+      'wash_bathrooms_disinfected',
+      'wash_cleanliness',
+      'wash_accessibility',
+      'wash_gender_separation',
+      'wash_menstrual_hygiene',
+      'wash_handwash_stations',
+      'wash_number_toilets',
+      'waiting_area',
+      'chair_availability',
+      'ventilation',
+      'waiting_area_well_maintained',
+      'educational_material',
+      'wall_well_maintained',
+      'spaces_lighting',
+      'ventilation_exam',
       'number_exam_rooms',
     ]);
 }
