@@ -39,6 +39,10 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'general_services/hepatitis_b',
   'general_services/tb_test',
   'general_services/blood_glucose',
+  'general_services/Infertility_counsel',
+  'general_services/abortion_counseling',
+  'general_services/referral_system',
+  'general_services/abortion_referral',
   'human_resource_health/consultation',
   'human_resource_health/medical_officers',
   'human_resource_health/medical_officers3',
@@ -66,6 +70,8 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'health_records_facility/cvc_register',
   'health_records_facility/pac_register',
   'health_records_facility/ptb_register',
+  'health_records_facility/cwc_register',
+  'health_records_facility/opd_register',
   'patient_confidentiality/visual_privacy',
   'patient_confidentiality/auditory_privacy',
   'patient_confidentiality/patient_files',
@@ -81,6 +87,7 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'staff_training/date_crh',
   'staff_training/date_asrh',
   'staff_training/date_rhcs',
+  'staff_training/date_preconception',
   'sops_policies/staffing_policy',
   'sops_policies/procument_protocols',
   'sops_policies/triage_protocols',
@@ -96,6 +103,9 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'sops_policies/weaning_education',
   'sops_policies/child_growth',
   'sops_policies/inf_diarrhea',
+  'sops_policies/preconception_protocols',
+  'sops_policies/folic_acid',
+  'sops_policies/child_immunization',
   'wash_ipc/water_source',
   'wash_ipc/water_availability',
   'wash_ipc/drainage_system',
@@ -128,6 +138,7 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'overall_infrastructure/service_charter',
   'overall_infrastructure/materials_display',
   'overall_infrastructure/service_areas',
+  'overall_infrastructure/edu_mat',
   'equipment_availability/exam_couches',
   'equipment_availability/bp_apparatus',
   'equipment_availability/thermometers',
@@ -151,6 +162,10 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'equipment_availability/glucometer',
   'equipment_availability/refrigerator',
   'equipment_availability/hemocue',
+  'equipment_availability/bp_adequate',
+  'equipment_availability/thermometers_adequate',
+  'equipment_availability/stethoscopes_adequate',
+  'equipment_availability/fetal_doppler_adequate',
   'commodities_available/itns',
   'commodities_available/latex_gloves',
   'commodities_available/sterile_gloves',
@@ -173,6 +188,14 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'commodities_available/hiv_rtk',
   'commodities_available/dipstick_ketone',
   'commodities_available/glucometer_strips',
+  'commodities_available/vitamin_c',
+  'commodities_available/malaria_diagnostic',
+  'commodities_available/syphilis_rdk',
+  'commodities_available/urine_ptk',
+  'commodities_available/dipstick_protein',
+  'commodities_available/dipstick_urine',
+  'commodities_available/filter_paper',
+  'commodities_available/malaria_zone',
   'adherance_to_ebp/patient_id',
   'adherance_to_ebp/triage_process',
   'adherance_to_ebp/triage_record',
@@ -184,6 +207,10 @@ const OUTPATIENT_SOURCE_KEYS = makeKeySet_([
   'adherance_to_ebp/anc_defaulters',
   'adherance_to_ebp/group_anc',
   'adherance_to_ebp/referral',
+  'adherance_to_ebp/preconception_visit',
+  'operation_hours/opening_hours',
+  'Section_14_Enumerator_Comments/comments',
+  'Section_14_Enumerator_Comments/data_quality',
 ]);
 
 function transformOutpatientRecord_(rec) {
@@ -297,6 +324,18 @@ function transformOutpatientRecord_(rec) {
   out.blood_glucose = lookupCoded_(
     rec['general_services/blood_glucose'], LAB_AVAILABILITY_MAP
   );
+  out.Infertility_counsel = lookupCoded_(
+    rec['general_services/Infertility_counsel'], OUTPATIENT_YES_NO_MAP
+  );
+  out.abortion_counseling = lookupCoded_(
+    rec['general_services/abortion_counseling'], OUTPATIENT_YES_NO_MAP
+  );
+  out.referral_system = lookupCoded_(
+    rec['general_services/referral_system'], OUTPATIENT_YES_NO_MAP
+  );
+  out.abortion_referral = lookupCoded_(
+    rec['general_services/abortion_referral'], OUTPATIENT_YES_NO_MAP
+  );
 
   out.consultation = lookupCoded_(
     rec['human_resource_health/consultation'], OUTPATIENT_YES_NO_MAP
@@ -380,6 +419,12 @@ function transformOutpatientRecord_(rec) {
   out.presumptive_tb_register = lookupCoded_(
     rec['health_records_facility/ptb_register'], NEWBORN_ADMISSION_AVAIL_MAP
   );
+  out.cwc_register = lookupCoded_(
+    rec['health_records_facility/cwc_register'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
+  out.opd_register = lookupCoded_(
+    rec['health_records_facility/opd_register'], NEWBORN_ADMISSION_AVAIL_MAP
+  );
 
   out.visual_privacy = lookupCoded_(
     rec['patient_confidentiality/visual_privacy'], ROOM_PRIVACY_MAP
@@ -410,6 +455,9 @@ function transformOutpatientRecord_(rec) {
   );
   out.training_date_rh_cancer_screening = formatYearMonth_(
     rec['staff_training/date_rhcs']
+  );
+  out.training_date_preconception = formatYearMonth_(
+    rec['staff_training/date_preconception']
   );
 
   out.staffing_policy = lookupCoded_(
@@ -456,6 +504,16 @@ function transformOutpatientRecord_(rec) {
   );
   out.sops_infant_diarrhea = lookupCoded_(
     rec['sops_policies/inf_diarrhea'], OUTPATIENT_YES_NO_MAP
+  );
+  out.preconception_protocols = lookupCoded_(
+    rec['sops_policies/preconception_protocols'],
+    OUTPATIENT_PROTOCOL_AVAILABILITY_MAP
+  );
+  out.folic_acid = lookupCoded_(
+    rec['sops_policies/folic_acid'], OUTPATIENT_YES_NO_MAP
+  );
+  out.child_immunization = lookupCoded_(
+    rec['sops_policies/child_immunization'], OUTPATIENT_YES_NO_MAP
   );
 
   out.wash_water_source = lookupCoded_(
@@ -558,6 +616,8 @@ function transformOutpatientRecord_(rec) {
   out.service_areas = lookupCoded_(
     rec['overall_infrastructure/service_areas'], OUTPATIENT_YES_NO_MAP
   );
+  out.education_material_specify = rec['overall_infrastructure/edu_mat'] == null
+    ? '' : rec['overall_infrastructure/edu_mat'];
 
   out.numbers_examination_couches = toIntegerOrBlank_(
     rec['equipment_availability/exam_couches']
@@ -636,6 +696,18 @@ function transformOutpatientRecord_(rec) {
   out.haemoglobinometer = lookupCoded_(
     rec['equipment_availability/hemocue'], OUTPATIENT_LAB_EQUIP_MAP
   );
+  out.bp_adequate = lookupCoded_(
+    rec['equipment_availability/bp_adequate'], OUTPATIENT_YES_NO_MAP
+  );
+  out.thermometers_adequate = lookupCoded_(
+    rec['equipment_availability/thermometers_adequate'], OUTPATIENT_YES_NO_MAP
+  );
+  out.stethoscopes_adequate = lookupCoded_(
+    rec['equipment_availability/stethoscopes_adequate'], OUTPATIENT_YES_NO_MAP
+  );
+  out.fetal_dopper_adequate = lookupCoded_(
+    rec['equipment_availability/fetal_doppler_adequate'], OUTPATIENT_YES_NO_MAP
+  );
 
   out.insecticide_treated_nets_available = lookupCoded_(
     rec['commodities_available/itns'], OUTPATIENT_COMMODITY_STORE_MAP
@@ -703,6 +775,30 @@ function transformOutpatientRecord_(rec) {
   out.available_glucometer = lookupCoded_(
     rec['commodities_available/glucometer_strips'], OUTPATIENT_COMMODITY_LAB_MAP
   );
+  out.vitamin_c_available = lookupCoded_(
+    rec['commodities_available/vitamin_c'], OUTPATIENT_COMMODITY_PHARMACY_MAP
+  );
+  out.malaria_diagnostic = lookupCoded_(
+    rec['commodities_available/malaria_diagnostic'], OUTPATIENT_COMMODITY_LAB_MAP
+  );
+  out.syphilis_rdk = lookupCoded_(
+    rec['commodities_available/syphilis_rdk'], OUTPATIENT_COMMODITY_LAB_MAP
+  );
+  out.urine_ptk = lookupCoded_(
+    rec['commodities_available/urine_ptk'], OUTPATIENT_COMMODITY_LAB_MAP
+  );
+  out.dipstick_protein = lookupCoded_(
+    rec['commodities_available/dipstick_protein'], OUTPATIENT_COMMODITY_LAB_MAP
+  );
+  out.dipstick_urine = lookupCoded_(
+    rec['commodities_available/dipstick_urine'], OUTPATIENT_COMMODITY_LAB_MAP
+  );
+  out.filter_paper_available = lookupCoded_(
+    rec['commodities_available/filter_paper'], OUTPATIENT_COMMODITY_LAB_MAP
+  );
+  out.malaria_zone = lookupCoded_(
+    rec['commodities_available/malaria_zone'], OUTPATIENT_YES_NO_MAP
+  );
 
   out.patient_identification = lookupCoded_(
     rec['adherance_to_ebp/patient_id'], ALWAYS_SOMETIMES_NEVER_MAP
@@ -752,6 +848,20 @@ function transformOutpatientRecord_(rec) {
   out.referral_mechanism = lookupCoded_(
     rec['adherance_to_ebp/referral'], OUTPATIENT_YES_NO_MAP
   );
+  expandSelectMultiple_(
+    out,
+    rec['adherance_to_ebp/preconception_visit'],
+    'adherance_to_ebp_preconception_visit',
+    OUTPATIENT_PRECONCEPTION_VISIT_CHOICES
+  );
+
+  out.opening_hours = lookupCoded_(
+    rec['operation_hours/opening_hours'], MATERNITY_OPERATION_HOURS_MAP
+  );
+  out.comments = rec['Section_14_Enumerator_Comments/comments'] == null
+    ? '' : rec['Section_14_Enumerator_Comments/comments'];
+  out.data_quality = rec['Section_14_Enumerator_Comments/data_quality'] == null
+    ? '' : rec['Section_14_Enumerator_Comments/data_quality'];
 
   return out;
 }
@@ -976,5 +1086,37 @@ function outpatientPreferredHeaders_() {
       'anc_defaulters',
       'group_anc',
       'referral_mechanism',
+    ])
+    .concat(selectMultipleHeaders_(
+      'adherance_to_ebp_preconception_visit',
+      OUTPATIENT_PRECONCEPTION_VISIT_CHOICES
+    ))
+    .concat([
+      'vitamin_c_available',
+      'opening_hours',
+      'comments',
+      'data_quality',
+      'education_material_specify',
+      'Infertility_counsel',
+      'abortion_counseling',
+      'training_date_preconception',
+      'preconception_protocols',
+      'folic_acid',
+      'child_immunization',
+      'bp_adequate',
+      'thermometers_adequate',
+      'stethoscopes_adequate',
+      'fetal_dopper_adequate',
+      'malaria_diagnostic',
+      'syphilis_rdk',
+      'urine_ptk',
+      'dipstick_protein',
+      'dipstick_urine',
+      'filter_paper_available',
+      'referral_system',
+      'abortion_referral',
+      'malaria_zone',
+      'cwc_register',
+      'opd_register',
     ]);
 }

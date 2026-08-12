@@ -979,6 +979,29 @@ const OUTPATIENT_PNC_VISIT_CHOICES = [
   { code: '5', slug: 'postnatal_danger_signs' },
 ];
 
+/**
+ * select_multiple: adherance_to_ebp/preconception_visit
+ * Output: adherance_to_ebp_preconception_visit_<slug> = Yes / No / ''
+ */
+const OUTPATIENT_PRECONCEPTION_VISIT_CHOICES = [
+  { code: '1', slug: 'hygiene' },
+  { code: '2', slug: 'nutrition_and_supplementation_folic_acid' },
+  { code: '3', slug: 'exercise_promotion_of_exercises' },
+  {
+    code: '4',
+    slug: 'screening_for_pre_existing_medical_conditions_anemia_diabetes_mellitus_tb_stis_hiv_hypertension_asthma_cardiac_conditions',
+  },
+  { code: '5', slug: 'management_of_pre_existing_medical_conditions' },
+  { code: '6', slug: 'maternal_immunization_status' },
+  { code: '7', slug: 'maternal_blood_type_and_screen' },
+  { code: '8', slug: 'genetic_conditions' },
+  { code: '9', slug: 'medication_use' },
+  { code: '10', slug: 'drug_use' },
+  { code: '11', slug: 'intimate_partner_violence' },
+  { code: '12', slug: 'mental_status' },
+  { code: '13', slug: 'cervical_cancer_screening' },
+];
+
 function makeKeySet_(keys) {
   const set = {};
   keys.forEach(function (key) { set[key] = true; });
