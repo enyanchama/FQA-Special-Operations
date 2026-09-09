@@ -129,11 +129,15 @@ function transformLabRecord_(rec) {
   out.abo_blood = lookupCoded_(
     rec['group_2/abo_blood'], ALWAYS_SOMETIMES_NEVER_MAP
   );
-  out.abo_monthly = lookupCoded_(rec['group_2/abo_monthly'], LAB_YES_NO_MAP);
+  out.abo_blood_monthly = lookupCoded_(
+    rec['group_2/abo_monthly'], LAB_YES_NO_MAP
+  );
   out.perform_hbsag = lookupCoded_(
     rec['group_2/perform_hbsag'], ALWAYS_SOMETIMES_NEVER_MAP
   );
-  out.hbsag_monthly = lookupCoded_(rec['group_2/hbsag_monthly'], LAB_YES_NO_MAP);
+  out.perform_hbsag_monthly = lookupCoded_(
+    rec['group_2/hbsag_monthly'], LAB_YES_NO_MAP
+  );
   out.perform_rpr = lookupCoded_(
     rec['group_2/perform_rpr'], ALWAYS_SOMETIMES_NEVER_MAP
   );
@@ -363,9 +367,9 @@ function labPreferredHeaders_() {
     'phone_number',
     'lab_unit',
     'abo_blood',
-    'abo_monthly',
+    'abo_blood_monthly',
     'perform_hbsag',
-    'hbsag_monthly',
+    'perform_hbsag_monthly',
     'perform_rpr',
     'rpr_monthly',
     'perform_vdrl',
