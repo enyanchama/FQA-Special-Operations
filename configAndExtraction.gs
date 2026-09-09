@@ -1002,6 +1002,47 @@ const OUTPATIENT_PRECONCEPTION_VISIT_CHOICES = [
   { code: '13', slug: 'cervical_cancer_screening' },
 ];
 
+/** Lab group_1/units — laboratory service tier. */
+const LAB_UNIT_MAP = {
+  3: 'Basic Laboratory services',
+  4: 'Comprehensive laboratory services',
+};
+
+/**
+ * Lab Yes/No. Current form uses 1/0; a few legacy rows still carry 2.
+ */
+const LAB_YES_NO_MAP = {
+  0: 'No',
+  1: 'Yes',
+  2: 'No',
+};
+
+/**
+ * Lab group_2/per_hiv_elisa — national 3-tier HIV confirmation options.
+ */
+const LAB_HIV_ELISA_MAP = {
+  1: 'Always',
+  2: 'Able to collect and send samples out to national lab',
+  3: 'Never',
+};
+
+/**
+ * select_multiple: group_2/dipstick_param
+ * Output: dipstick_param_<slug> = Yes / No / ''
+ */
+const LAB_DIPSTICK_CHOICES = [
+  { code: '1', slug: 'ph' },
+  { code: '2', slug: 'protein' },
+  { code: '3', slug: 'glucose' },
+  { code: '4', slug: 'ketones' },
+  { code: '5', slug: 'blood_hematuria' },
+  { code: '6', slug: 'leukocytes' },
+  { code: '7', slug: 'nitrites' },
+  { code: '8', slug: 'bilirubin' },
+  { code: '9', slug: 'urobilinogen' },
+  { code: '10', slug: 'specific_gravity' },
+];
+
 function makeKeySet_(keys) {
   const set = {};
   keys.forEach(function (key) { set[key] = true; });

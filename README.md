@@ -10,7 +10,7 @@ Google Apps Script pipeline that pulls QuIPS KoboToolbox submissions into Google
 | `newbornUnitTransformation.gs` | Newborn Unit transforms and preferred headers |
 | `maternityTransformation.gs` | Inpatient Maternity transforms and preferred headers |
 | `outpatientTransformation.gs` | Outpatient transforms and preferred headers |
-| `labTransformation.gs` | Lab date transforms |
+| `labTransformation.gs` | Lab transforms and preferred headers |
 | `operatingTheatreTransformation.gs` | Operating Theatre date transforms |
 | `pharmacyTransformation.gs` | Pharmacy date transforms |
 | `centralStoreTransformation.gs` | Central Store date transforms |
