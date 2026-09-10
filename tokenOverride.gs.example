@@ -1,0 +1,8 @@
+/**
+ * Optional Apps Script-only token file. Copy into the Apps Script project
+ * as a separate file if you are not using Script Properties.
+ *
+ * Do not commit a real token. getApiToken() reads KOBO_API_TOKEN from
+ * Script Properties first, then this override.
+ */
+var KOBO_API_TOKEN_OVERRIDE = '';

@@ -1,9 +1,7 @@
 /**
  * FQA QuIPS Orchestrator
  *
- * Runs extraction, transformation, and staging for all 8 Kobo forms.
- *
- * Each form now has its own transformation file.
+ * Runs extraction and transformation for all 8 Kobo forms.
  */
 
 const FORM_CONFIG = [
@@ -44,13 +42,11 @@ const FORM_CONFIG = [
 /**
  * Incremental refresh.
  *
- * Fetches every form and appends only submissions whose `_uuid`
- * is not already present in the corresponding sheet.
+ * Appends submissions whose `_uuid` is not already in the sheet.
  */
 function pullAllForms() {
   const token = getApiToken();
-  const spreadsheet =
-    SpreadsheetApp.getActiveSpreadsheet();
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
 
   FORM_CONFIG.forEach(function (form, index) {
     try {
@@ -114,13 +110,11 @@ function pullAllForms() {
 /**
  * Full refresh.
  *
- * Fetches and transforms data before clearing a sheet. This prevents
- * extraction or transformation errors from erasing existing data.
+ * Fetches and transforms data before clearing each sheet.
  */
 function fullRefreshAllForms() {
   const token = getApiToken();
-  const spreadsheet =
-    SpreadsheetApp.getActiveSpreadsheet();
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
 
   FORM_CONFIG.forEach(function (form, index) {
     try {
@@ -133,7 +127,7 @@ function fullRefreshAllForms() {
       );
 
       /*
-       * Fetch and transform successfully before clearing the sheet.
+       * Fetch and transform successfully before clearing existing data.
        */
       let records = fetchAllSubmissions(
         form.uid,
@@ -150,10 +144,9 @@ function fullRefreshAllForms() {
           form.sheetName
         );
 
-      const sheet =
-        spreadsheet.getSheetByName(
-          form.sheetName
-        );
+      const sheet = spreadsheet.getSheetByName(
+        form.sheetName
+      );
 
       if (sheet) {
         sheet.clearContents();
@@ -192,7 +185,7 @@ function fullRefreshAllForms() {
 }
 
 /**
- * Route each form to its transformation function.
+ * Route records to the appropriate transformation.
  */
 function transformRecordsForSheet_(
   sheetName,
@@ -255,9 +248,6 @@ function transformRecordsForSheet_(
 
 /**
  * Return the preferred output-column order for each sheet.
- *
- * Untransformed/raw fields not included in these lists are still preserved
- * and placed after the preferred transformed columns.
  */
 function preferredHeadersForSheet_(
   sheetName
@@ -304,8 +294,7 @@ function preferredHeadersForSheet_(
 /**
  * Run once manually to create a daily incremental pull at 6 AM.
  *
- * Remove any existing `pullAllForms` trigger before running this again
- * to avoid duplicate scheduled executions.
+ * Delete an existing pullAllForms trigger before running this again.
  */
 function createDailyTrigger() {
   ScriptApp

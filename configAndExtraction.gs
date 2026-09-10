@@ -36,7 +36,7 @@ const MAX_CELL_CHARS = 45000;
 const COUNTY_MAP = {
   1: 'Mombasa', 2: 'Makueni', 3: 'Kisii', 4: 'Nakuru', 5: "Murang'a", 6: 'Kakamega',
 };
-const FACILITY_LEVEL_MAP = { 2: 'Level 2', 3: 'Level 3', 4: 'Level 4' };
+const FACILITY_LEVEL_MAP = { 2: 'Level 2', 3: 'Level 3', 4: 'Level 4', 5: 'Level 5' };
 const CONTACT_PERSON_MAP = {
   1: 'Clinical officer in charge',
   2: 'Nursing officer in charge',
@@ -1002,47 +1002,6 @@ const OUTPATIENT_PRECONCEPTION_VISIT_CHOICES = [
   { code: '13', slug: 'cervical_cancer_screening' },
 ];
 
-/** Lab group_1/units — laboratory service tier. */
-const LAB_UNIT_MAP = {
-  3: 'Basic Laboratory services',
-  4: 'Comprehensive laboratory services',
-};
-
-/**
- * Lab Yes/No. Current form uses 1/0; a few legacy rows still carry 2.
- */
-const LAB_YES_NO_MAP = {
-  0: 'No',
-  1: 'Yes',
-  2: 'No',
-};
-
-/**
- * Lab group_2/per_hiv_elisa — national 3-tier HIV confirmation options.
- */
-const LAB_HIV_ELISA_MAP = {
-  1: 'Always',
-  2: 'Able to collect and send samples out to national lab',
-  3: 'Never',
-};
-
-/**
- * select_multiple: group_2/dipstick_param
- * Output: dipstick_param_<slug> = Yes / No / ''
- */
-const LAB_DIPSTICK_CHOICES = [
-  { code: '1', slug: 'ph' },
-  { code: '2', slug: 'protein' },
-  { code: '3', slug: 'glucose' },
-  { code: '4', slug: 'ketones' },
-  { code: '5', slug: 'blood_hematuria' },
-  { code: '6', slug: 'leukocytes' },
-  { code: '7', slug: 'nitrites' },
-  { code: '8', slug: 'bilirubin' },
-  { code: '9', slug: 'urobilinogen' },
-  { code: '10', slug: 'specific_gravity' },
-];
-
 function makeKeySet_(keys) {
   const set = {};
   keys.forEach(function (key) { set[key] = true; });
@@ -1908,5 +1867,20 @@ function writeRows_(sheet, headers, records, startRow, writeHeader) {
     sheet.getRange(destRow, 1, rows.length, headers.length).setValues(rows);
     rowOffset += slice.length;
   }
+}
+
+/**
+ * Contact name and phone as entered. Prefer group_1 fields, then
+ * facility_profile aliases used on some later forms.
+ */
+function assignContactNamePhone_(out, rec) {
+  out.contact_name = firstValue_(rec, [
+    'group_1/nam_contact',
+    'facility_profile/nam_contact',
+  ]);
+  out.phone_number = firstValue_(rec, [
+    'group_1/phone_contact',
+    'facility_profile/phone_contact',
+  ]);
 }
 

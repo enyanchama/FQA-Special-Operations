@@ -1,351 +1,448 @@
 /** Lab transformation and preferred headers. */
 
-const LAB_SOURCE_KEYS = makeKeySet_([
-  'starttime',
-  'start',
-  'endtime',
-  'end',
-  'group_1/participation',
-  'group_1/county',
-  'group_1/gazetted',
-  'group_1/facility',
-  'group_1/contact',
-  'group_1/con_faci',
-  'group_1/nam_contact',
-  'group_1/phone_contact',
-  'group_1/units',
-  'group_2/abo_blood',
-  'group_2/abo_monthly',
-  'group_2/perform_hbsag',
-  'group_2/hbsag_monthly',
-  'group_2/perform_rpr',
-  'group_2/rpr_monthly',
-  'group_2/perform_vdrl',
-  'group_2/vdrl_monthly',
-  'group_2/perform_syphilis',
-  'group_2/perform_microscopy',
-  'group_2/microscopy_monthly',
-  'group_2/perform_hb',
-  'group_2/HB_monthly',
-  'group_2/per_urinalyisis_micro',
-  'group_2/urinalyisis_micro_mon',
-  'group_2/perform_urine_rapid',
-  'group_2/urine_rapid_monthly',
-  'group_2/perform_urine_protein',
-  'group_2/urine_protein_monthly',
-  'group_2/glucose_dipstick',
-  'group_2/glucose_dipstick_monthly',
-  'group_2/dipstick_param',
-  'group_2/perform_hiv',
-  'group_2/hivrapid_monthly',
-  'group_2/perform_malaria',
-  'group_2/malaria_monthly',
-  'group_2/perform_tb',
-  'group_2/tb_monthly',
-  'group_2/perform_blood_gluc',
-  'group_2/blood_gluc_monthly',
-  'group_2/perform_vaginal_swab',
-  'group_2/vaginal_swab_monthly',
-  'group_2/perform_esr',
-  'group_2/esr_monthly',
-  'group_2/perform_thyroid',
-  'group_2/thyroid_monthly',
-  'group_2/perform_hormone_prof',
-  'group_2/hormone_prof_monthly',
-  'group_2/able_Hga1c',
-  'group_2/Hga1c_monthly',
-  'group_2/perform_crp',
-  'group_2/crp_monthly',
-  'group_2/perform_coombs',
-  'group_2/coombs_monthly',
-  'group_2/offer_bloodtransfusion',
-  'group_2/transfusion_monthly',
-  'group_2/perform_crossmatch',
-  'group_2/crossmatch_monthly',
-  'group_2/perform_hepc',
-  'group_2/hepc_monthly',
-  'group_2/per_urinalysis_culture',
-  'group_2/culture_monthly',
-  'group_2/per_hiv_elisa',
-  'group_2/hiv_elisa_monthly',
-  'group_2/eid_hiv',
-  'group_2/per_dbs',
-  'group_2/dbs_monthly',
-  'group_2/sample_viral',
-  'group_2/per_liver_tests',
-  'group_2/liver_tests_monthly',
-  'group_2/per_urea_elec',
-  'group_2/urea_elec_monthly',
-  'group_2/able_birirubin',
-  'group_2/birirubin_monthly',
-  'group_2/per_uric_acid',
-  'group_2/uric_acid_monthly',
-  'group_2/per_coagulation',
-  'group_2/coagulation_monthly',
-  'group_2/per_blood_culture',
-  'group_2/blood_culture_monthly',
-  'group_2/perform_pap_smear',
-  'group_2/pap_smear_referral',
-  'group_2/pap_smear_monthly',
-  'group_2/per_hpv_testing',
-  'group_2/HPV_testing_monthly',
-  'group_2/via_test',
-  'group_2/via_monthly',
-  'group_2/perform_via',
-  'group_2/per_hpylori',
-  'group_2/hpylori_monthly',
-]);
+const LAB_UNITS_MAP = {
+  3: 'Basic Laboratory services',
+  4: 'Comprehensive laboratory services',
+};
+
+/**
+ * group_2 coded questions, in output order.
+ * Always/Sometimes/Never unless the destination looks like a monthly Yes/No.
+ */
+const LAB_GROUP_2_FIELDS = [
+  { source: 'group_2/abo_blood', dest: 'blood_group_testing' },
+  { source: 'group_2/abo_monthly', dest: 'abo_monthly' },
+  { source: 'group_2/perform_hbsag', dest: 'perform_hbsag' },
+  { source: 'group_2/hbsag_monthly', dest: 'hbsag_monthly' },
+  { source: 'group_2/perform_rpr', dest: 'perform_rpr' },
+  { source: 'group_2/rpr_monthly', dest: 'rpr_monthly' },
+  { source: 'group_2/perform_vdrl', dest: 'perform_vdrl' },
+  { source: 'group_2/vdrl_monthly', dest: 'vdrl_monthly' },
+  { source: 'group_2/perform_syphilis', dest: 'perform_syphilis' },
+  { source: 'group_2/perform_microscopy', dest: 'perform_microscopy' },
+  { source: 'group_2/microscopy_monthly', dest: 'microscopy_monthly' },
+  { source: 'group_2/perform_hb', dest: 'perform_hb' },
+  { source: 'group_2/HB_monthly', dest: 'HB_monthly' },
+  { source: 'group_2/per_urinalyisis_micro', dest: 'per_urinalyisis_micro' },
+  { source: 'group_2/urinalyisis_micro_mon', dest: 'urinalyisis_micro_mon' },
+  { source: 'group_2/perform_urine_rapid', dest: 'perform_urine_rapid' },
+  { source: 'group_2/urine_rapid_monthly', dest: 'urine_rapid_monthly' },
+  { source: 'group_2/perform_urine_protein', dest: 'perform_urine_protein' },
+  { source: 'group_2/urine_protein_monthly', dest: 'urine_protein_monthly' },
+  { source: 'group_2/glucose_dipstick', dest: 'glucose_dipstick' },
+  { source: 'group_2/glucose_dipstick_monthly', dest: 'glucose_dipstick_monthly' },
+  { source: 'group_2/perform_hiv', dest: 'perform_hiv' },
+  { source: 'group_2/hivrapid_monthly', dest: 'hivrapid_monthly' },
+  { source: 'group_2/perform_malaria', dest: 'perform_malaria' },
+  { source: 'group_2/malaria_monthly', dest: 'malaria_monthly' },
+  { source: 'group_2/perform_tb', dest: 'perform_tb' },
+  { source: 'group_2/tb_monthly', dest: 'tb_monthly' },
+  { source: 'group_2/perform_blood_gluc', dest: 'perform_blood_gluc' },
+  { source: 'group_2/blood_gluc_monthly', dest: 'blood_gluc_monthly' },
+  { source: 'group_2/perform_vaginal_swab', dest: 'perform_vaginal_swab' },
+  { source: 'group_2/vaginal_swab_monthly', dest: 'vaginal_swab_monthly' },
+  { source: 'group_2/perform_esr', dest: 'perform_esr' },
+  { source: 'group_2/esr_monthly', dest: 'esr_monthly' },
+  { source: 'group_2/perform_thyroid', dest: 'perform_thyroid' },
+  { source: 'group_2/thyroid_monthly', dest: 'thyroid_monthly' },
+  { source: 'group_2/perform_hormone_prof', dest: 'perform_hormone_prof' },
+  { source: 'group_2/hormone_prof_monthly', dest: 'hormone_prof_monthly' },
+  { source: 'group_2/able_Hga1c', dest: 'able_Hga1c' },
+  { source: 'group_2/Hga1c_monthly', dest: 'Hga1c_monthly' },
+  { source: 'group_2/perform_crp', dest: 'perform_crp' },
+  { source: 'group_2/crp_monthly', dest: 'crp_monthly' },
+  { source: 'group_2/perform_coombs', dest: 'perform_coombs' },
+  { source: 'group_2/coombs_monthly', dest: 'coombs_monthly' },
+  { source: 'group_2/offer_bloodtransfusion', dest: 'offer_bloodtransfusion' },
+  { source: 'group_2/transfusion_monthly', dest: 'transfusion_monthly' },
+  { source: 'group_2/perform_crossmatch', dest: 'perform_crossmatch' },
+  { source: 'group_2/crossmatch_monthly', dest: 'crossmatch_monthly' },
+  { source: 'group_2/perform_hepc', dest: 'perform_hepc' },
+  { source: 'group_2/hepc_monthly', dest: 'hepc_monthly' },
+  { source: 'group_2/per_urinalysis_culture', dest: 'per_urinalysis_culture' },
+  { source: 'group_2/culture_monthly', dest: 'culture_monthly' },
+  { source: 'group_2/per_hiv_elisa', dest: 'per_hiv_elisa' },
+  { source: 'group_2/hiv_elisa_monthly', dest: 'hiv_elisa_monthly' },
+  { source: 'group_2/per_dbs', dest: 'per_dbs' },
+  { source: 'group_2/dbs_monthly', dest: 'dbs_monthly' },
+  { source: 'group_2/per_liver_tests', dest: 'per_liver_tests' },
+  { source: 'group_2/liver_tests_monthly', dest: 'liver_tests_monthly' },
+  { source: 'group_2/per_urea_elec', dest: 'per_urea_elec' },
+  { source: 'group_2/urea_elec_monthly', dest: 'urea_elec_monthly' },
+  { source: 'group_2/able_birirubin', dest: 'able_birirubin' },
+  { source: 'group_2/birirubin_monthly', dest: 'birirubin_monthly' },
+  { source: 'group_2/per_uric_acid', dest: 'per_uric_acid' },
+  { source: 'group_2/uric_acid_monthly', dest: 'uric_acid_monthly' },
+  { source: 'group_2/per_coagulation', dest: 'per_coagulation' },
+  { source: 'group_2/coagulation_monthly', dest: 'coagulation_monthly' },
+  { source: 'group_2/per_blood_culture', dest: 'per_blood_culture' },
+  { source: 'group_2/blood_culture_monthly', dest: 'blood_culture_monthly' },
+  { source: 'group_2/perform_pap_smear', dest: 'perform_pap_smear' },
+  { source: 'group_2/pap_smear_monthly', dest: 'pap_smear_monthly' },
+  { source: 'group_2/per_hpv_testing', dest: 'per_hpv_testing' },
+  { source: 'group_2/HPV_testing_monthly', dest: 'HPV_testing_monthly' },
+  { source: 'group_2/per_hpylori', dest: 'per_hpylori' },
+  { source: 'group_2/hpylori_monthly', dest: 'hpylori_monthly' },
+  { source: 'group_2/perform_via', dest: 'perform_via' },
+  { source: 'group_2/via_monthly', dest: 'via_monthly' },
+];
+
+/**
+ * group_3 Yes/No questions before the standard lab request multi.
+ * Names drop the group_3/ prefix. 1 Yes / 0 No.
+ */
+const LAB_GROUP_3_REGISTER_FIELDS = [
+  'lab_register',
+  'lab_register_used',
+  'lab_summary_register',
+  'summary_reg_used',
+  'consumption_register',
+  'consumption_reg_used',
+  'hts_register',
+  'hts_reg_used',
+  'referral_register',
+  'request_form',
+];
+
+/**
+ * select_multiple: group_3/standard_lab_request
+ * Columns: standard_lab_request_<choice_slug> = Yes / No / '' (blank if skipped).
+ */
+const LAB_STANDARD_LAB_REQUEST_PREFIX = 'standard_lab_request';
+const LAB_STANDARD_LAB_REQUEST_CHOICES = [
+  { code: '1', slug: 'patient_name' },
+  { code: '2', slug: 'patient_age_date_of_birth' },
+  { code: '3', slug: 'patient_gender' },
+  { code: '4', slug: 'patient_location_contact_information' },
+  { code: '5', slug: 'name_or_unique_identifier_of_requesting_clinician' },
+  { code: '6', slug: 'date_and_time_of_sample_collection' },
+  { code: '7', slug: 'type_of_sample_collection_requested' },
+  { code: '8', slug: 'clinical_background' },
+  { code: '9', slug: 'urgency_classification' },
+  { code: '10', slug: 'none' },
+];
+
+/** group_3 Yes/No questions after the standard lab request multi. */
+const LAB_GROUP_3_FOLLOWUP_FIELDS = [
+  'sample_accpt_rej_form',
+  'temp_monitoring_form',
+  'chart_filled_daily',
+  'daily_rota',
+  'rota_filled_daily',
+  'qc_register',
+  'quality_control_freq',
+];
+
+function labGroup3YesNoFields_() {
+  return LAB_GROUP_3_REGISTER_FIELDS.concat(LAB_GROUP_3_FOLLOWUP_FIELDS);
+}
+
+/** group_4 integer counts; names drop the group_4/ prefix. */
+const LAB_GROUP_4_COUNT_FIELDS = [
+  'cert_lab_techs',
+  'contract_lab_techs',
+  'county_lab_tech_working',
+  'contract_lab_techs_working',
+];
+
+/** group_4/personnel: 1 Present / 0 Not present. */
+const LAB_PERSONNEL_MAP = {
+  1: 'Present',
+  0: 'Not present',
+};
+
+/** group_5 training fields; names drop the group_5/ prefix. */
+const LAB_GROUP_5_TRAINING_FIELDS = [
+  'training_blood_safety',
+  'training_unit_biosafety',
+  'training_pro_testing_HIV',
+];
+
+/** group_5 Yes/No questions. 1 Yes / 0 No. */
+const LAB_GROUP_5_YES_NO_FIELDS = [
+  'yearly_cpd',
+  'eqa',
+];
+
+/** group_6/handwashing_protocol */
+const LAB_HANDWASHING_PROTOCOL_MAP = {
+  1: 'They have displayed, up to date protocols',
+  2: 'They have written up to date protocols, not displayed',
+  3: 'They do not have up to date displayed or written protocols',
+};
+
+/**
+ * select_multiple: group_6/sop
+ * Columns: sop_<choice_slug> = Yes / No / '' (blank if skipped).
+ */
+const LAB_SOP_PREFIX = 'sop';
+const LAB_SOP_CHOICES = [
+  { code: '1', slug: 'personal_protective_equipment_ppe_use' },
+  { code: '2', slug: 'handling_biological_specimens' },
+  { code: '3', slug: 'chemical_safety' },
+  { code: '4', slug: 'spill_management' },
+  { code: '5', slug: 'emergency_preparedness' },
+  { code: '6', slug: 'sharps_safety' },
+  { code: '7', slug: 'equipment_preventive_maintenance' },
+  { code: '8', slug: 'equipment_calibration' },
+  { code: '9', slug: 'internal_quality_control' },
+  { code: '10', slug: 'document_control' },
+  { code: '11', slug: 'error_reporting_and_corrective_actions' },
+  { code: '12', slug: 'sample_reception_and_handling' },
+  { code: '13', slug: 'turnaround_time_monitoring' },
+  { code: '14', slug: 'inventory_management' },
+  { code: '15', slug: 'logbook_use' },
+  { code: '16', slug: 'none' },
+];
+
+/**
+ * select_multiple: group_6/specimen_collection
+ * Columns: specimen_collection_<choice_slug> = Yes / No / '' (blank if skipped).
+ */
+const LAB_SPECIMEN_COLLECTION_PREFIX = 'specimen_collection';
+const LAB_SPECIMEN_COLLECTION_CHOICES = [
+  { code: '1', slug: 'labelling' },
+  { code: '2', slug: 'patient_safety' },
+  { code: '3', slug: 'staff_safety' },
+  { code: '4', slug: 'transportation_to_persons_responsible_for_primary_sample_collection' },
+  { code: '5', slug: 'none' },
+];
+
+/** group_6 Yes/No questions after specimen collection. */
+const LAB_GROUP_6_YES_NO_FIELDS = [
+  'guide_ref_critical_values',
+  'packaging_specimen',
+  'sop_lab',
+  'stock_inv_control_store',
+  'stock_inv_control_reagents',
+];
+
+/**
+ * select_multiple: group_6/confirm_sops
+ * Columns: confirm_sops_<choice_slug> = Yes / No / '' (blank if skipped).
+ */
+const LAB_CONFIRM_SOPS_PREFIX = 'confirm_sops';
+const LAB_CONFIRM_SOPS_CHOICES = [
+  { code: '1', slug: 'abo_blood_group_and_rh_testing' },
+  { code: '2', slug: 'hbsag_testing' },
+  { code: '3', slug: 'vdrl_or_rpr_testing' },
+  { code: '4', slug: 'general_microscopy_wet_mounts' },
+  { code: '5', slug: 'full_haemogram_testing' },
+  { code: '6', slug: 'urine_for_microscopy' },
+  { code: '7', slug: 'urine_rapid_test_for_pregnancy' },
+  { code: '8', slug: 'urine_dipstick_testing' },
+  { code: '9', slug: 'hiv_rapid_testing' },
+  { code: '10', slug: 'malaria_testing_giemsa_stain' },
+  { code: '11', slug: 'tb_testing' },
+  { code: '12', slug: 'blood_glucose_test' },
+  { code: '13', slug: 'high_vaginal_swab' },
+  { code: '14', slug: 'esr_testing' },
+  { code: '15', slug: 'thyroid_function_tests' },
+  { code: '16', slug: 'hormone_profile_testing' },
+  { code: '17', slug: 'hga1c_testing' },
+  { code: '18', slug: 'crp_testing' },
+  { code: '19', slug: 'coombs_ab_testing' },
+  { code: '20', slug: 'cross_match_testing' },
+  { code: '21', slug: 'hcv_testing' },
+  { code: '22', slug: 'urinalysis_for_culture_and_sensitivity' },
+  { code: '23', slug: 'dbs_for_hiv_viral_load' },
+  { code: '24', slug: 'liver_function_testing' },
+  { code: '25', slug: 'urea_electrolytes_and_creatinine_testing' },
+  { code: '26', slug: 'bilirubin_testing' },
+  { code: '27', slug: 'uric_acid_level_testing' },
+  { code: '28', slug: 'coagulation_profile_testing' },
+  { code: '29', slug: 'blood_culture_and_sensitivity' },
+  { code: '30', slug: 'hpv_testing' },
+  { code: '31', slug: 'via_testing' },
+];
+
+function labGroup2Map_(dest) {
+  if (/monthly|_mon$/i.test(dest)) return YES_NO_MAP;
+  return ALWAYS_SOMETIMES_NEVER_MAP;
+}
+
+const LAB_SOURCE_KEYS = (function () {
+  const keys = {
+    starttime: true,
+    start: true,
+    endtime: true,
+    end: true,
+    'group_1/county': true,
+    'group_1/facility': true,
+    'group_1/gazetted': true,
+    'group_1/contact': true,
+    'group_1/nam_contact': true,
+    'group_1/phone_contact': true,
+    'group_1/units': true,
+  };
+  LAB_GROUP_2_FIELDS.forEach(function (field) {
+    keys[field.source] = true;
+  });
+  labGroup3YesNoFields_().forEach(function (dest) {
+    keys['group_3/' + dest] = true;
+  });
+  keys['group_3/standard_lab_request'] = true;
+  LAB_GROUP_4_COUNT_FIELDS.forEach(function (dest) {
+    keys['group_4/' + dest] = true;
+  });
+  keys['group_4/personnel'] = true;
+  keys['group_4/inadequate_staff'] = true;
+  LAB_GROUP_5_TRAINING_FIELDS.forEach(function (dest) {
+    keys['group_5/' + dest] = true;
+  });
+  LAB_GROUP_5_YES_NO_FIELDS.forEach(function (dest) {
+    keys['group_5/' + dest] = true;
+  });
+  keys['group_6/handwashing_protocol'] = true;
+  keys['group_6/have_quality_manual'] = true;
+  keys['group_6/sop'] = true;
+  keys['group_6/specimen_collection'] = true;
+  LAB_GROUP_6_YES_NO_FIELDS.forEach(function (dest) {
+    keys['group_6/' + dest] = true;
+  });
+  keys['group_6/confirm_sops'] = true;
+  return keys;
+})();
 
 function transformLabRecord_(rec) {
   const out = {};
-  out[UUID_FIELD] = rec[UUID_FIELD] == null ? '' : rec[UUID_FIELD];
+  out[UUID_FIELD] =
+    rec[UUID_FIELD] == null ? '' : rec[UUID_FIELD];
 
   /*
-   * Preserve every field not transformed below.
-   * `_submission_time` is retained as a raw column too.
+   * Preserve all fields except raw start/end fields and consumed
+   * group_1 through group_6 codes. `_submission_time` is also retained as a
+   * raw column.
    */
-  assignPassthrough_(out, rec, LAB_SOURCE_KEYS);
+  assignPassthrough_(
+    out,
+    rec,
+    LAB_SOURCE_KEYS
+  );
 
-  out.date_started = formatDateMinute_(firstValue_(rec, ['starttime', 'start']));
-  out.date_ended = formatDateMinute_(firstValue_(rec, ['endtime', 'end']));
-  out.date_submitted = formatDateMinute_(rec['_submission_time']);
+  out.date_started = formatDateMinute_(
+    firstValue_(rec, ['starttime', 'start'])
+  );
 
-  out.participation = lookupCoded_(rec['group_1/participation'], LAB_YES_NO_MAP);
-  out.county = lookupCoded_(rec['group_1/county'], COUNTY_MAP);
+  out.date_ended = formatDateMinute_(
+    firstValue_(rec, ['endtime', 'end'])
+  );
+
+  out.date_submitted = formatDateMinute_(
+    rec['_submission_time']
+  );
+
+  out.county = lookupCoded_(
+    rec['group_1/county'],
+    COUNTY_MAP
+  );
+
+  const facilityMap = isOnOrAfterCutoff_(out.date_submitted, FACILITY_MAP_CUTOFF)
+    ? FACILITY_MAP_FROM_2026
+    : FACILITY_MAP_BEFORE_2026;
+  out.facility = lookupCoded_(
+    rec['group_1/facility'],
+    facilityMap
+  );
+
   out.facility_level = lookupCoded_(
-    rec['group_1/gazetted'], OUTPATIENT_FACILITY_LEVEL_MAP
+    rec['group_1/gazetted'],
+    FACILITY_LEVEL_MAP
   );
-  // Lab facility list has always matched the post-2026 coding (code 1 =
-  // Kitutu), including 2024 submissions — do not apply the maternity cutoff.
-  out.facility = lookupCoded_(rec['group_1/facility'], FACILITY_MAP_FROM_2026);
-  out.contact = lookupCoded_(rec['group_1/contact'], CONTACT_PERSON_MAP);
-  out.contact_other = rec['group_1/con_faci'] == null ? '' : rec['group_1/con_faci'];
-  out.contact_name = rec['group_1/nam_contact'] == null
-    ? '' : rec['group_1/nam_contact'];
-  out.phone_number = rec['group_1/phone_contact'] == null
-    ? '' : rec['group_1/phone_contact'];
-  out.lab_unit = lookupCoded_(rec['group_1/units'], LAB_UNIT_MAP);
 
-  out.abo_blood = lookupCoded_(
-    rec['group_2/abo_blood'], ALWAYS_SOMETIMES_NEVER_MAP
+  out.contact = lookupCoded_(
+    rec['group_1/contact'],
+    CONTACT_PERSON_MAP
   );
-  out.abo_blood_monthly = lookupCoded_(
-    rec['group_2/abo_monthly'], LAB_YES_NO_MAP
+  assignContactNamePhone_(out, rec);
+
+  out.units = lookupCoded_(
+    rec['group_1/units'],
+    LAB_UNITS_MAP
   );
-  out.perform_hbsag = lookupCoded_(
-    rec['group_2/perform_hbsag'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.perform_hbsag_monthly = lookupCoded_(
-    rec['group_2/hbsag_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_rpr = lookupCoded_(
-    rec['group_2/perform_rpr'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.rpr_monthly = lookupCoded_(rec['group_2/rpr_monthly'], LAB_YES_NO_MAP);
-  out.perform_vdrl = lookupCoded_(
-    rec['group_2/perform_vdrl'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.vdrl_monthly = lookupCoded_(rec['group_2/vdrl_monthly'], LAB_YES_NO_MAP);
-  out.perform_syphilis = lookupCoded_(
-    rec['group_2/perform_syphilis'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.perform_microscopy = lookupCoded_(
-    rec['group_2/perform_microscopy'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.microscopy_monthly = lookupCoded_(
-    rec['group_2/microscopy_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_hb = lookupCoded_(
-    rec['group_2/perform_hb'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.hb_monthly = lookupCoded_(rec['group_2/HB_monthly'], LAB_YES_NO_MAP);
-  out.perform_urine_microscopy = lookupCoded_(
-    rec['group_2/per_urinalyisis_micro'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.urine_microscopy_monthly = lookupCoded_(
-    rec['group_2/urinalyisis_micro_mon'], LAB_YES_NO_MAP
-  );
-  out.perform_urine_rapid = lookupCoded_(
-    rec['group_2/perform_urine_rapid'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.urine_rapid_monthly = lookupCoded_(
-    rec['group_2/urine_rapid_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_urine_dipstick = lookupCoded_(
-    rec['group_2/perform_urine_protein'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.urine_dipstick_monthly = lookupCoded_(
-    rec['group_2/urine_protein_monthly'], LAB_YES_NO_MAP
-  );
-  out.glucose_dipstick = lookupCoded_(
-    rec['group_2/glucose_dipstick'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.glucose_dipstick_monthly = lookupCoded_(
-    rec['group_2/glucose_dipstick_monthly'], LAB_YES_NO_MAP
-  );
+
+  LAB_GROUP_2_FIELDS.forEach(function (field) {
+    out[field.dest] = lookupCoded_(
+      rec[field.source],
+      labGroup2Map_(field.dest)
+    );
+  });
+
+  labGroup3YesNoFields_().forEach(function (dest) {
+    out[dest] = lookupCoded_(
+      rec['group_3/' + dest],
+      YES_NO_MAP
+    );
+  });
+
   expandSelectMultiple_(
     out,
-    rec['group_2/dipstick_param'],
-    'dipstick_param',
-    LAB_DIPSTICK_CHOICES
+    rec['group_3/standard_lab_request'],
+    LAB_STANDARD_LAB_REQUEST_PREFIX,
+    LAB_STANDARD_LAB_REQUEST_CHOICES
   );
-  out.perform_hiv = lookupCoded_(
-    rec['group_2/perform_hiv'], ALWAYS_SOMETIMES_NEVER_MAP
+
+  LAB_GROUP_4_COUNT_FIELDS.forEach(function (dest) {
+    out[dest] = toIntegerOrBlank_(rec['group_4/' + dest]);
+  });
+
+  out.personnel = lookupCoded_(
+    rec['group_4/personnel'],
+    LAB_PERSONNEL_MAP
   );
-  out.hiv_monthly = lookupCoded_(
-    rec['group_2/hivrapid_monthly'], LAB_YES_NO_MAP
+
+  out.inadequate_staff = lookupCoded_(
+    rec['group_4/inadequate_staff'],
+    YES_NO_MAP
   );
-  out.perform_malaria = lookupCoded_(
-    rec['group_2/perform_malaria'], ALWAYS_SOMETIMES_NEVER_MAP
+
+  LAB_GROUP_5_TRAINING_FIELDS.forEach(function (dest) {
+    out[dest] = toIntegerOrBlank_(rec['group_5/' + dest]);
+  });
+
+  LAB_GROUP_5_YES_NO_FIELDS.forEach(function (dest) {
+    out[dest] = lookupCoded_(
+      rec['group_5/' + dest],
+      YES_NO_MAP
+    );
+  });
+
+  out.handwashing_protocol = lookupCoded_(
+    rec['group_6/handwashing_protocol'],
+    LAB_HANDWASHING_PROTOCOL_MAP
   );
-  out.malaria_monthly = lookupCoded_(
-    rec['group_2/malaria_monthly'], LAB_YES_NO_MAP
+
+  out.have_quality_manual = lookupCoded_(
+    rec['group_6/have_quality_manual'],
+    YES_NO_MAP
   );
-  out.perform_tb = lookupCoded_(
-    rec['group_2/perform_tb'], ALWAYS_SOMETIMES_NEVER_MAP
+
+  expandSelectMultiple_(
+    out,
+    rec['group_6/sop'],
+    LAB_SOP_PREFIX,
+    LAB_SOP_CHOICES
   );
-  out.tb_monthly = lookupCoded_(rec['group_2/tb_monthly'], LAB_YES_NO_MAP);
-  out.perform_blood_glucose = lookupCoded_(
-    rec['group_2/perform_blood_gluc'], ALWAYS_SOMETIMES_NEVER_MAP
+
+  expandSelectMultiple_(
+    out,
+    rec['group_6/specimen_collection'],
+    LAB_SPECIMEN_COLLECTION_PREFIX,
+    LAB_SPECIMEN_COLLECTION_CHOICES
   );
-  out.blood_glucose_monthly = lookupCoded_(
-    rec['group_2/blood_gluc_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_vaginal_swab = lookupCoded_(
-    rec['group_2/perform_vaginal_swab'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.vaginal_swab_monthly = lookupCoded_(
-    rec['group_2/vaginal_swab_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_esr = lookupCoded_(
-    rec['group_2/perform_esr'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.esr_monthly = lookupCoded_(rec['group_2/esr_monthly'], LAB_YES_NO_MAP);
-  out.perform_thyroid = lookupCoded_(
-    rec['group_2/perform_thyroid'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.thyroid_monthly = lookupCoded_(
-    rec['group_2/thyroid_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_hormone_profile = lookupCoded_(
-    rec['group_2/perform_hormone_prof'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.hormone_profile_monthly = lookupCoded_(
-    rec['group_2/hormone_prof_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_hba1c = lookupCoded_(
-    rec['group_2/able_Hga1c'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.hba1c_monthly = lookupCoded_(
-    rec['group_2/Hga1c_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_crp = lookupCoded_(
-    rec['group_2/perform_crp'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.crp_monthly = lookupCoded_(rec['group_2/crp_monthly'], LAB_YES_NO_MAP);
-  out.perform_coombs = lookupCoded_(
-    rec['group_2/perform_coombs'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.coombs_monthly = lookupCoded_(
-    rec['group_2/coombs_monthly'], LAB_YES_NO_MAP
-  );
-  out.offer_blood_transfusion = lookupCoded_(
-    rec['group_2/offer_bloodtransfusion'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.transfusion_monthly = lookupCoded_(
-    rec['group_2/transfusion_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_crossmatch = lookupCoded_(
-    rec['group_2/perform_crossmatch'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.crossmatch_monthly = lookupCoded_(
-    rec['group_2/crossmatch_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_hepc = lookupCoded_(
-    rec['group_2/perform_hepc'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.hepc_monthly = lookupCoded_(rec['group_2/hepc_monthly'], LAB_YES_NO_MAP);
-  out.perform_urine_culture = lookupCoded_(
-    rec['group_2/per_urinalysis_culture'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.urine_culture_monthly = lookupCoded_(
-    rec['group_2/culture_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_hiv_elisa = lookupCoded_(
-    rec['group_2/per_hiv_elisa'], LAB_HIV_ELISA_MAP
-  );
-  out.hiv_elisa_monthly = lookupCoded_(
-    rec['group_2/hiv_elisa_monthly'], LAB_YES_NO_MAP
-  );
-  out.eid_hiv = lookupCoded_(rec['group_2/eid_hiv'], LAB_YES_NO_MAP);
-  out.perform_dbs = lookupCoded_(
-    rec['group_2/per_dbs'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.dbs_monthly = lookupCoded_(rec['group_2/dbs_monthly'], LAB_YES_NO_MAP);
-  out.sample_viral_load = lookupCoded_(
-    rec['group_2/sample_viral'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.perform_liver_tests = lookupCoded_(
-    rec['group_2/per_liver_tests'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.liver_tests_monthly = lookupCoded_(
-    rec['group_2/liver_tests_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_urea_electrolytes = lookupCoded_(
-    rec['group_2/per_urea_elec'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.urea_electrolytes_monthly = lookupCoded_(
-    rec['group_2/urea_elec_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_bilirubin = lookupCoded_(
-    rec['group_2/able_birirubin'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.bilirubin_monthly = lookupCoded_(
-    rec['group_2/birirubin_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_uric_acid = lookupCoded_(
-    rec['group_2/per_uric_acid'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.uric_acid_monthly = lookupCoded_(
-    rec['group_2/uric_acid_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_coagulation = lookupCoded_(
-    rec['group_2/per_coagulation'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.coagulation_monthly = lookupCoded_(
-    rec['group_2/coagulation_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_blood_culture = lookupCoded_(
-    rec['group_2/per_blood_culture'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.blood_culture_monthly = lookupCoded_(
-    rec['group_2/blood_culture_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_pap_smear = lookupCoded_(
-    rec['group_2/perform_pap_smear'], LAB_YES_NO_MAP
-  );
-  out.pap_smear_referral = lookupCoded_(
-    rec['group_2/pap_smear_referral'], LAB_YES_NO_MAP
-  );
-  out.pap_smear_monthly = lookupCoded_(
-    rec['group_2/pap_smear_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_hpv = lookupCoded_(
-    rec['group_2/per_hpv_testing'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.hpv_monthly = lookupCoded_(
-    rec['group_2/HPV_testing_monthly'], LAB_YES_NO_MAP
-  );
-  out.perform_via = lookupCoded_(
-    firstValue_(rec, ['group_2/via_test', 'group_2/perform_via']),
-    ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.via_monthly = lookupCoded_(rec['group_2/via_monthly'], LAB_YES_NO_MAP);
-  out.perform_hpylori = lookupCoded_(
-    rec['group_2/per_hpylori'], ALWAYS_SOMETIMES_NEVER_MAP
-  );
-  out.hpylori_monthly = lookupCoded_(
-    rec['group_2/hpylori_monthly'], LAB_YES_NO_MAP
+
+  LAB_GROUP_6_YES_NO_FIELDS.forEach(function (dest) {
+    out[dest] = lookupCoded_(
+      rec['group_6/' + dest],
+      YES_NO_MAP
+    );
+  });
+
+  expandSelectMultiple_(
+    out,
+    rec['group_6/confirm_sops'],
+    LAB_CONFIRM_SOPS_PREFIX,
+    LAB_CONFIRM_SOPS_CHOICES
   );
 
   return out;
@@ -357,95 +454,34 @@ function labPreferredHeaders_() {
     'date_started',
     'date_ended',
     'date_submitted',
-    'participation',
     'county',
-    'facility_level',
     'facility',
+    'facility_level',
     'contact',
-    'contact_other',
     'contact_name',
     'phone_number',
-    'lab_unit',
-    'abo_blood',
-    'abo_blood_monthly',
-    'perform_hbsag',
-    'perform_hbsag_monthly',
-    'perform_rpr',
-    'rpr_monthly',
-    'perform_vdrl',
-    'vdrl_monthly',
-    'perform_microscopy',
-    'microscopy_monthly',
-    'perform_hb',
-    'hb_monthly',
-    'perform_urine_microscopy',
-    'urine_microscopy_monthly',
-    'perform_urine_rapid',
-    'urine_rapid_monthly',
-    'perform_urine_dipstick',
-    'urine_dipstick_monthly',
-  ]
-    .concat(selectMultipleHeaders_('dipstick_param', LAB_DIPSTICK_CHOICES))
-    .concat([
-      'perform_hiv',
-      'hiv_monthly',
-      'perform_malaria',
-      'malaria_monthly',
-      'perform_tb',
-      'tb_monthly',
-      'perform_blood_glucose',
-      'blood_glucose_monthly',
-      'perform_vaginal_swab',
-      'vaginal_swab_monthly',
-      'perform_esr',
-      'esr_monthly',
-      'perform_thyroid',
-      'thyroid_monthly',
-      'perform_hormone_profile',
-      'hormone_profile_monthly',
-      'perform_hba1c',
-      'hba1c_monthly',
-      'perform_crp',
-      'crp_monthly',
-      'perform_coombs',
-      'coombs_monthly',
-      'offer_blood_transfusion',
-      'transfusion_monthly',
-      'perform_crossmatch',
-      'crossmatch_monthly',
-      'perform_hepc',
-      'hepc_monthly',
-      'perform_urine_culture',
-      'urine_culture_monthly',
-      'perform_hiv_elisa',
-      'hiv_elisa_monthly',
-      'eid_hiv',
-      'perform_dbs',
-      'dbs_monthly',
-      'sample_viral_load',
-      'perform_liver_tests',
-      'liver_tests_monthly',
-      'perform_urea_electrolytes',
-      'urea_electrolytes_monthly',
-      'perform_bilirubin',
-      'bilirubin_monthly',
-      'perform_uric_acid',
-      'uric_acid_monthly',
-      'perform_coagulation',
-      'coagulation_monthly',
-      'perform_blood_culture',
-      'blood_culture_monthly',
-      'perform_pap_smear',
-      'pap_smear_referral',
-      'perform_hpv',
-      'hpv_monthly',
-      'perform_via',
-      'via_monthly',
-      'perform_syphilis',
-      'glucose_dipstick',
-      'glucose_dipstick_monthly',
-      'pap_smear_monthly',
-      'perform_hpylori',
-      'hpylori_monthly',
-    ]);
+    'units',
+  ].concat(LAB_GROUP_2_FIELDS.map(function (field) {
+    return field.dest;
+  })).concat(LAB_GROUP_3_REGISTER_FIELDS)
+    .concat(selectMultipleHeaders_(
+      LAB_STANDARD_LAB_REQUEST_PREFIX,
+      LAB_STANDARD_LAB_REQUEST_CHOICES
+    ))
+    .concat(LAB_GROUP_3_FOLLOWUP_FIELDS)
+    .concat(LAB_GROUP_4_COUNT_FIELDS)
+    .concat(['personnel', 'inadequate_staff'])
+    .concat(LAB_GROUP_5_TRAINING_FIELDS)
+    .concat(LAB_GROUP_5_YES_NO_FIELDS)
+    .concat(['handwashing_protocol', 'have_quality_manual'])
+    .concat(selectMultipleHeaders_(LAB_SOP_PREFIX, LAB_SOP_CHOICES))
+    .concat(selectMultipleHeaders_(
+      LAB_SPECIMEN_COLLECTION_PREFIX,
+      LAB_SPECIMEN_COLLECTION_CHOICES
+    ))
+    .concat(LAB_GROUP_6_YES_NO_FIELDS)
+    .concat(selectMultipleHeaders_(
+      LAB_CONFIRM_SOPS_PREFIX,
+      LAB_CONFIRM_SOPS_CHOICES
+    ));
 }
